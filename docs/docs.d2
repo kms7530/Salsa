@@ -1,0 +1,70 @@
+Video: {
+  metadata: {
+    Title
+    Hash tag
+    Video code
+  }
+  content: {
+    grid-columns: 3
+    frame
+    thumbnail
+    topic
+  }
+  style: {
+    shadow: true
+  }
+}
+
+ASR: {
+  content description
+}
+
+VLM: {
+  frame description
+  content summary
+  scene description
+}
+
+DB: {
+  icon: https://icons.terrastruct.com/essentials%2F117-database.svg
+  content summary
+  content hash tag
+  video code
+  Frame based keyword
+  content section
+}
+
+Video.content.topic -> ASR.content description
+ASR.content description -> DB.content section
+
+VLM -> DB.content summary
+VLM -> DB.content hash tag
+Video.metadata.video code -> DB.video code
+
+Video.content.frame -> VLM.frame description: 영상 섹션을 구분하고, 각 섹션별로 키워드 추출
+Video.content.thumbnail -> VLM.scene description: 썸네일에서 키워드 추출
+Video.content -> VLM.content summary: 영상 전체 내용에 대한 요약 질의
+
+Video.metadata.title -> Search Agent.keyword generator
+Video.metadata.hash tag -> Search Agent.keyword generator
+
+VLM -> DB.Frame based keyword
+Search Agent -> DB.Frame based keyword
+
+comment: |md
+  영상 거래 플랫폼
+
+  영상 내용을 통해 색인 할 수 있는...
+
+  section의 썸네일을 만들고 그 썸네일 기준 object detection 하여 영상의 특징 라벨 추출
+
+  Whisper로 내용 스크립팅 / youtube의 경우 자막 추출
+|
+
+Agent: {
+  shape: sequence_diagram
+  User -> Vision Agent: 검색어로 관련 영상 요청
+  Vision Agent -> DB: 검색어와 연관된 영상 검색
+  DB -> Vision Agent: 검색 결과 반환
+  Vision Agent -> User: 검색 결과 반환
+}
