@@ -1,0 +1,25 @@
+name: black-action
+on: [push, pull_request]
+jobs:
+  linter_name:
+    name: runner / black
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check files using the black formatter
+        uses: rickstaa/action-black@v1
+        id: action_black
+        with:
+          black_args: "."
+      - name: Create Pull Request
+        if: steps.action_black.outputs.is_formatted == 'true'
+        uses: peter-evans/create-pull-request@v6
+        with:
+          token: ${{ secrets.ACCESS_TOKEN }}
+          title: "[Chore] Black Formatter 수정 반영"
+          commit-message: "[Chore] Black Formatter 수정 반영"
+          body: |
+            ${{ github.sha }} 에서 Black format과 다른 형식이 감지되었습니다. 
+            해당 Pull Request는 [psf/black](https://github.com/psf/black)를 준수하여 수정 후 생성되었습니다. 
+          base: ${{ github.head_ref }} 
+          branch: actions/black
