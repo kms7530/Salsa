@@ -1,0 +1,14 @@
+[tool.poetry]
+name = "vigilant"
+version = "0.1.0"
+description = "Vigilant 서비스 구동을 위한 repository."
+authors = ["Minseok Kwak <kwak@minseok.me>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.11"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
