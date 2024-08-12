@@ -47,6 +47,7 @@ def __generate_prompt(prompt: str) -> torch.Tensor:
     return input_ids
 
 
+# TODO: 서빙을 위해 추가 작업 동기화와 같은 작업 필요.
 def __run_inference(
     input_ids: torch.Tensor, input_tensor: torch.Tensor, modalities: str
 ) -> str:
