@@ -1,4 +1,5 @@
-from model.vision_lang import infer_with_video
+from inferences.vision_lang import infer_with_video
+from preprocess.prompt import get_video_section_prompt
 from preprocess.video import download_video, slice_video
 
 
@@ -21,11 +22,16 @@ def get_video_description(
     Returns:
         str: 추론 결과 텍스트.
     """
-    # 프롬프트 생성.
-    prompt = f"{context_section}\n\n{video_id}_{section_start}_{section_end}"
 
+    # TODO: 동작 테스트 필요.
+    # 프롬프트 생성.
+    prompt = get_video_section_prompt(context_section)
+
+    # 영상 다운로드 후 영상 내에서 섹션 추출.
     download_video(video_id, path_cache)
-    slice_video(video_id, section_start, section_end)
-    result = infer_with_video(prompt, video_id, section_start, section_end)
+    path_sliced_video = slice_video(video_id, section_start, section_end)
+
+    # 추출된 영상에 대해 프롬프트와 함께 추론.
+    result = infer_with_video(prompt, path_sliced_video)
 
     return result
