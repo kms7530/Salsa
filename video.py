@@ -22,7 +22,7 @@ def download_video(video_code: str, path_cache: str):
     yt.streams.filter(file_extension="mp4").first().download(filename=path_video)
 
 
-def slice_video(video_code: str, path_cache: str, start: int, end: int):
+def slice_video(video_code: str, path_cache: str, start: int, end: int) -> str:
     """입력된 비디오 코드에 해당하는 비디오를 원하는 구간만 추출하여 저장하는 함수.
 
     Args:
@@ -30,6 +30,9 @@ def slice_video(video_code: str, path_cache: str, start: int, end: int):
         path_cache (str): Cache 저장 폴더 경로.
         start (int): 영상의 관심 부분 시작 초.
         end (int): 영상의 관심 부분 종료 초.
+
+    Returns:
+        str: 저장된 영상의 파일 경로.
     """
 
     # Cache path 생성.
@@ -41,3 +44,5 @@ def slice_video(video_code: str, path_cache: str, start: int, end: int):
     video.write_videofile(path_target_video)
 
     video.close()
+
+    return path_target_video
