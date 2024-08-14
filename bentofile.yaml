@@ -1,6 +1,6 @@
-service: "service:Summarization"
+service: "service:VisionLanguage"
 labels:
-  owner: bentoml-team
+  owner: guacamole-company
   project: gallery
 include:
   - "*.py"
