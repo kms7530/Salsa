@@ -1,0 +1,21 @@
+User {
+    shape: person
+}
+
+Instance {
+    icon: https://icons.terrastruct.com/tech/022-server.svg
+
+    BentoML {
+        GPU
+    }
+    FastAPI
+}
+
+db: DB {
+    icon: https://icons.terrastruct.com/dev%2Fmongodb.svg
+}
+
+Instance.BentoML -> Instance.FastAPI: resp
+Instance.BentoML <- Instance.FastAPI: req
+User -> Instance.FastAPI: Video Code
+Instance.FastAPI -> DB
