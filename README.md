@@ -11,11 +11,14 @@
 ./vigilant
 ├── docs                -> 구조 및 참조 문서. 
 │   ├── docs.d2
-│   └── docs.svg
-├── inferences          -> VLM, OCR 및 LLM 서비스 추론용 라이브러리. 
+│   ├── docs.svg
+│   ├── vigilant.d2
+│   └── vigilant.svg
+├── inferences          -> VLM, OCR 및 LLM 서비스 추론용 라이브러리. ; BentoML 통합으로 인해 제거 예정. 
 │   ├── lang.py         -> LLM 서비스 추론용. 
 │   ├── ocr.py          -> OCR 추론용. 
 │   └── vision_lang.py  -> VLM 추론용(Image, Video). 
+├── install.sh          -> 의존성 라이브러리 설치를 위한 shell script. 
 ├── main.py             -> 실행 파일. 
 ├── pipelines           -> 각자 맡은 파이프라인 부분. 
 │   └── video_section.py
@@ -26,7 +29,9 @@
 │   └── video.py        -> 비디오 전처리. 
 ├── prompts             -> 프롬프트 저장용 폴더. 
 │   └── EXAMPLE         -> 프롬프트 예시 파일. 
-└── pyproject.toml
+├── pyproject.toml
+├── requirements.txt
+└── service.py
 ```
 
 ## 규칙
@@ -35,6 +40,16 @@
 - 생성해주신 모든 함수에 대해서는, `docstring`을 작성해주시기 바랍니다. 
   - 작성이 되어있지 않으면, 다른분들이 작업하기 힘듭니다. 😢
 - Dependency가 필요한 경우, `poetry add TARGET`을 통해 라이브러리를 추가해주시기 바랍니다. 
+
+# 🚀 실행 방법
+```bash
+# 의존성 라이브러리 설치(LongVA, Vigilant)
+bash ./install.sh
+
+# 위의 로그 확인 후 문제가 발생하지 않은 경우,
+# 다음 명령어로 실행. 
+bentoml serve service:VisionLanguage
+```
 
 # 📝 프롬프트 작성
 프롬프트는 `./promts/`에 저장 후 사용하시면 됩니다. 
