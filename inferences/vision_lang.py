@@ -1,6 +1,7 @@
 import numpy as np
 import torch
 from decord import VideoReader, cpu
+from deprecated.sphinx import deprecated
 from longva.constants import IMAGE_TOKEN_INDEX
 from longva.mm_utils import process_images, tokenizer_image_token
 from longva.model.builder import load_pretrained_model
@@ -86,6 +87,9 @@ def __run_inference(
     return outputs
 
 
+@deprecated(
+    reason="BentoML 통합으로 인한 deprecation. 추후 함수 제거 예정. ",
+)
 def infer_with_image(prompt: str, image_path: str = "", image_PIL: Image = None) -> str:
     """이미지 파일을 이용한 LongVA 추론 함수.
 
@@ -124,6 +128,9 @@ def infer_with_image(prompt: str, image_path: str = "", image_PIL: Image = None)
     return outputs
 
 
+@deprecated(
+    reason="BentoML 통합으로 인한 deprecation. 추후 함수 제거 예정. ",
+)
 def infer_with_video(prompt: str, video_path: str, max_frames_num: int = 16) -> str:
     """비디오 파일을 이용한 LongVA 추론 함수.
 
