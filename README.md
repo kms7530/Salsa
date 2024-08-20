@@ -43,6 +43,9 @@
 
 # 🚀 실행 방법
 ```bash
+# install.sh의 실행 권한 부여. 
+chmod -R 666 ./install.sh
+
 # 의존성 라이브러리 설치(LongVA, Vigilant)
 bash ./install.sh
 
