@@ -17,6 +17,7 @@ pip install -r requirements.txt
 echo ""
 echo ">>> Install dependencies for Vigilant ..."
 echo ""
+cd ..
 pip install -r requirements.txt
 
 echo ""
