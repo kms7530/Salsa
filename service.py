@@ -61,7 +61,11 @@ class VisionLanguage:
         return input_ids
 
     def __run_inference(
-        self, input_ids: torch.Tensor, input_tensor: torch.Tensor, modalities: str
+        self,
+        input_ids: torch.Tensor,
+        input_tensor: torch.Tensor,
+        modalities: str,
+        image: PILImage = None,
     ) -> str:
         """Modality에 따른 추론 후 결과를 반환하는 내부 함수.
 
@@ -88,7 +92,7 @@ class VisionLanguage:
                 output_ids = self.model.generate(
                     input_ids,
                     images=input_tensor,
-                    image_sizes=[input_tensor.size],
+                    image_sizes=[image.size],
                     modalities=[modalities],
                     **self.gen_kwargs,
                 )
@@ -112,10 +116,10 @@ class VisionLanguage:
         """
 
         # 프롬프트 생성 및 토큰으로 변환.
-        input_ids = self.generate_prompt(prompt)
+        input_ids = self.__generate_prompt(prompt)
 
         # 비디오 파일 불러오기.
-        vr = VideoReader(video_path, ctx=cpu(0))
+        vr = VideoReader(str(video_path), ctx=cpu(0))
         total_frame_num = len(vr)
         uniform_sampled_frames = np.linspace(
             0, total_frame_num - 1, self.max_frames_num, dtype=int
@@ -129,10 +133,7 @@ class VisionLanguage:
         ].to(self.model.device, dtype=torch.float16)
 
         # 추론.
-        output_ids = self.__run_inference(input_ids, video_tensor, "video")
-        outputs = self.tokenizer.batch_decode(output_ids, skip_special_tokens=True)[
-            0
-        ].strip()
+        outputs = self.__run_inference(input_ids, video_tensor, "video")
 
         return outputs
 
@@ -156,10 +157,7 @@ class VisionLanguage:
             [image], self.image_processor, self.model.config
         ).to(self.model.device, dtype=torch.float16)
 
-        output_ids = self.__run_inference(input_ids, images_tensor, "image")
-        outputs = self.tokenizer.batch_decode(output_ids, skip_special_tokens=True)[
-            0
-        ].strip()
+        outputs = self.__run_inference(input_ids, images_tensor, "image", image=image)
 
         return outputs
 
