@@ -6,12 +6,11 @@ import bentoml
 import numpy as np
 import torch
 from decord import VideoReader, cpu
-from fastapi import Depends, FastAPI
+from fastapi import FastAPI
 from longva.constants import IMAGE_TOKEN_INDEX
 from longva.mm_utils import process_images, tokenizer_image_token
 from longva.model.builder import load_pretrained_model
-from PIL import Image
-
+from PIL.Image import Image as PILImage
 
 # FastAPI 객체 생성.
 app = FastAPI()
@@ -20,7 +19,7 @@ app.task_counter = 0  # 현재 동작중인 worker의 개수를 담는 변수
 
 @bentoml.service(
     resources={"cpu": "2"},
-    traffic={"timeout": 10},
+    traffic={"timeout": 30},
 )
 class VisionLanguage:
     def __init__(self) -> None:
@@ -138,7 +137,7 @@ class VisionLanguage:
         return outputs
 
     @bentoml.api(route="/image")
-    def infer_with_image(self, prompt: str, image: Image) -> str:
+    def infer_with_image(self, prompt: str, image: PILImage) -> str:
         """이미지 파일을 이용한 LongVA 추론 함수.
 
         Args:
