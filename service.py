@@ -12,6 +12,7 @@ from longva.constants import IMAGE_TOKEN_INDEX
 from longva.mm_utils import process_images, tokenizer_image_token
 from longva.model.builder import load_pretrained_model
 from PIL.Image import Image as PILImage
+from transformers import AutoModelForZeroShotObjectDetection, AutoProcessor
 
 from config import Config
 from preprocess.video import download_video
@@ -165,6 +166,52 @@ class VisionLanguage:
         outputs = self.__run_inference(input_ids, images_tensor, "image", image=image)
 
         return outputs
+
+
+@bentoml.service(
+    resources={"cpu": "1"},
+    traffic={"timeout": 10},
+)
+@bentoml.mount_asgi_app(app, path="/v1")
+class DINO:
+    def __init__(self) -> None:
+        """Ground DINO의 serving을 위한 객체 생성 함수."""
+
+        model_id = Config.PREF_DINO["model_name"]
+        device = Config.PREF_DINO["device"]
+
+        self.processor = AutoProcessor.from_pretrained(model_id)
+        self.model = AutoModelForZeroShotObjectDetection.from_pretrained(model_id).to(
+            device
+        )
+
+    @bentoml.api(route="/ground-box")
+    def infer(self, prompt: str, image: PILImage) -> Dict:
+        """Ground DINO 추론을 위한 API 함수.
+
+        Args:
+            prompt (str): 추론시 이용될 프롬프트.
+            image (PILImage): 추론할 이미지 객체.
+
+        Returns:
+            Dict: 결과 dict.
+        """
+
+        inputs = self.processor(images=image, text=prompt, return_tensors="pt").to(
+            self.model.device
+        )
+        with torch.no_grad():
+            outputs = self.model(**inputs)
+
+        results = self.processor.post_process_grounded_object_detection(
+            outputs,
+            inputs.input_ids,
+            box_threshold=Config.PREF_DINO["box_threshold"],
+            text_threshold=Config.PREF_DINO["text_threshold"],
+            target_sizes=[image.size[::-1]],
+        )
+
+        return results
 
 
 @app.get("/api/health")
