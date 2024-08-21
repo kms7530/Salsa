@@ -1,8 +1,11 @@
 import hashlib
 import os
+from urllib.parse import urljoin
 
 import requests
 from PIL import Image
+
+from config import Config
 
 
 def infer_with_image(
@@ -44,8 +47,10 @@ def infer_with_image(
 
     # 파일과 함께 전송할 데이터
     data = {"prompt": prompt}
-    # TODO: 설정 파일에서 경로 가져오기.
-    url: str = "TMP_ADDR"
+    url: str = urljoin(
+        Config.PATH_BENTOML_SERVER_BASE_URL,
+        Config.PATH_BENTOML_SERVER["infer_with_image"],
+    )
 
     # 파일 열기
     with open(path_image, "rb") as file:
@@ -70,8 +75,10 @@ def infer_with_video(prompt: str, video_path: str) -> str:
 
     # 파일과 함께 전송할 데이터
     data = {"prompt": prompt}
-    # TODO: 설정 파일에서 경로 가져오기.
-    url: str = "TMP_ADDR"
+    url: str = urljoin(
+        Config.PATH_BENTOML_SERVER_BASE_URL,
+        Config.PATH_BENTOML_SERVER["infer_with_video"],
+    )
 
     # 파일 열기
     with open(video_path, "rb") as file:
