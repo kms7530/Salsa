@@ -6,12 +6,11 @@ import bentoml
 import numpy as np
 import torch
 from decord import VideoReader, cpu
-from fastapi import Depends, FastAPI
+from fastapi import FastAPI
 from longva.constants import IMAGE_TOKEN_INDEX
 from longva.mm_utils import process_images, tokenizer_image_token
 from longva.model.builder import load_pretrained_model
-from PIL import Image
-
+from PIL.Image import Image as PILImage
 
 # FastAPI 객체 생성.
 app = FastAPI()
@@ -20,7 +19,7 @@ app.task_counter = 0  # 현재 동작중인 worker의 개수를 담는 변수
 
 @bentoml.service(
     resources={"cpu": "2"},
-    traffic={"timeout": 10},
+    traffic={"timeout": 30},
 )
 class VisionLanguage:
     def __init__(self) -> None:
@@ -62,7 +61,11 @@ class VisionLanguage:
         return input_ids
 
     def __run_inference(
-        self, input_ids: torch.Tensor, input_tensor: torch.Tensor, modalities: str
+        self,
+        input_ids: torch.Tensor,
+        input_tensor: torch.Tensor,
+        modalities: str,
+        image: PILImage = None,
     ) -> str:
         """Modality에 따른 추론 후 결과를 반환하는 내부 함수.
 
@@ -89,7 +92,7 @@ class VisionLanguage:
                 output_ids = self.model.generate(
                     input_ids,
                     images=input_tensor,
-                    image_sizes=[input_tensor.size],
+                    image_sizes=[image.size],
                     modalities=[modalities],
                     **self.gen_kwargs,
                 )
@@ -113,10 +116,10 @@ class VisionLanguage:
         """
 
         # 프롬프트 생성 및 토큰으로 변환.
-        input_ids = self.generate_prompt(prompt)
+        input_ids = self.__generate_prompt(prompt)
 
         # 비디오 파일 불러오기.
-        vr = VideoReader(video_path, ctx=cpu(0))
+        vr = VideoReader(str(video_path), ctx=cpu(0))
         total_frame_num = len(vr)
         uniform_sampled_frames = np.linspace(
             0, total_frame_num - 1, self.max_frames_num, dtype=int
@@ -130,15 +133,12 @@ class VisionLanguage:
         ].to(self.model.device, dtype=torch.float16)
 
         # 추론.
-        output_ids = self.__run_inference(input_ids, video_tensor, "video")
-        outputs = self.tokenizer.batch_decode(output_ids, skip_special_tokens=True)[
-            0
-        ].strip()
+        outputs = self.__run_inference(input_ids, video_tensor, "video")
 
         return outputs
 
     @bentoml.api(route="/image")
-    def infer_with_image(self, prompt: str, image: Image) -> str:
+    def infer_with_image(self, prompt: str, image: PILImage) -> str:
         """이미지 파일을 이용한 LongVA 추론 함수.
 
         Args:
@@ -157,10 +157,7 @@ class VisionLanguage:
             [image], self.image_processor, self.model.config
         ).to(self.model.device, dtype=torch.float16)
 
-        output_ids = self.__run_inference(input_ids, images_tensor, "image")
-        outputs = self.tokenizer.batch_decode(output_ids, skip_special_tokens=True)[
-            0
-        ].strip()
+        outputs = self.__run_inference(input_ids, images_tensor, "image", image=image)
 
         return outputs
 
