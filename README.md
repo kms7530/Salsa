@@ -14,7 +14,7 @@
 │   ├── docs.svg
 │   ├── vigilant.d2
 │   └── vigilant.svg
-├── inferences          -> VLM, OCR 및 LLM 서비스 추론용 라이브러리. ; BentoML 통합으로 인해 제거 예정. 
+├── inferences          -> VLM, OCR 및 LLM 서비스 추론용 wrapper 라이브러리.
 │   ├── lang.py         -> LLM 서비스 추론용. 
 │   ├── ocr.py          -> OCR 추론용. 
 │   └── vision_lang.py  -> VLM 추론용(Image, Video). 
