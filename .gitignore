@@ -1,5 +1,6 @@
 # Custom ignores. 
 prompts/*.txt
+config.py
 
 # Created by https://www.toptal.com/developers/gitignore/api/python,macos,windows,visualstudio,visualstudiocode,pycharm
 # Edit at https://www.toptal.com/developers/gitignore?templates=python,macos,windows,visualstudio,visualstudiocode,pycharm
