@@ -15,14 +15,9 @@ pip install flash-attn --no-build-isolation --no-cache-dir
 pip install -r requirements.txt
 
 echo ""
-echo ">>> Remove unnecessary files ..."
-echo ""
-cd ..
-rm -rf ./LongVA
-
-echo ""
 echo ">>> Install dependencies for Vigilant ..."
 echo ""
+cd ..
 pip install -r requirements.txt
 
 echo ""

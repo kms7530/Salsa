@@ -1,7 +1,8 @@
 import os
+from pathlib import Path
 
 import moviepy.editor as mp
-from pytube import YouTube
+from pytubefix import YouTube
 
 
 def download_video(video_code: str, path_cache: str):
@@ -10,11 +11,15 @@ def download_video(video_code: str, path_cache: str):
     Args:
         video_code (str): YouTube의 영상 코드.
     """
+
+    # 캐쉬 저장소 폴더가 없는 경우 경로 생성.
+    Path(path_cache).mkdir(parents=True, exist_ok=True)
+
     # Cache path 생성.
     path_video: str = os.path.join(path_cache, f"{video_code}.mp4")
 
     # 기존의 파일이 있는 경우, 기존 파일 이용.
-    if not os.path.exists(path_video):
+    if os.path.exists(path_video):
         return
 
     video_url = f"https://www.youtube.com/watch?v={video_code}"
@@ -38,6 +43,10 @@ def slice_video(video_code: str, path_cache: str, start: int, end: int) -> str:
     # Cache path 생성.
     path_source_video: str = os.path.join(path_cache, f"{video_code}.mp4")
     path_target_video: str = os.path.join(path_cache, f"{video_code}_{start}_{end}.mp4")
+
+    # 기존의 파일이 있는 경우, 기존 파일 이용.
+    if os.path.exists(path_target_video):
+        return path_target_video
 
     video = mp.VideoFileClip(path_source_video)
     video = video.subclip(start, end)

@@ -29,7 +29,7 @@ def get_video_description(
 
     # 영상 다운로드 후 영상 내에서 섹션 추출.
     download_video(video_id, path_cache)
-    path_sliced_video = slice_video(video_id, section_start, section_end)
+    path_sliced_video = slice_video(video_id, path_cache, section_start, section_end)
 
     # 추출된 영상에 대해 프롬프트와 함께 추론.
     result = infer_with_video(prompt, path_sliced_video)
