@@ -13,6 +13,7 @@ from longva.mm_utils import process_images, tokenizer_image_token
 from longva.model.builder import load_pretrained_model
 from PIL.Image import Image as PILImage
 
+from config import Config
 from preprocess.video import download_video
 
 # FastAPI 객체 생성.
@@ -193,7 +194,7 @@ def health_check(
     """
 
     # Youtube 영상 받아오기.
-    download_video(code, ".cache")
+    download_video(code, Config.PATH_CACHE)
 
     # TODO: 기타 pipeline 작성.
 
