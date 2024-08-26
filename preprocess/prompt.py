@@ -1,9 +1,7 @@
 import jinja2
 
 
-def get_video_section_prompt(
-    context_section: str, path_prompt: str = "video_section.txt"
-) -> str:
+def get_video_section_prompt(path_prompt: str = "video_section.txt", **kwargs) -> str:
     """비디오 내의 대사를 가져와 프롬프트를 반환하는 함수.
 
     Args:
@@ -19,6 +17,6 @@ def get_video_section_prompt(
     templateEnv = jinja2.Environment(loader=templateLoader)
     template = templateEnv.get_template(path_prompt)
 
-    prompt = template.render(context_section=context_section)
+    prompt = template.render(**kwargs)
 
     return prompt
