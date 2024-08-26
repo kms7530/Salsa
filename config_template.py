@@ -15,9 +15,12 @@ class Config:
     PATH_BENTOML_SERVER: Dict = {
         "infer_with_video": "/video",
         "infer_with_image": "/image",
+        "infer_ground_box": "/ground-box",
     }
 
-    PATH_BENTOML_SERVER_BASE_URL: str = f"{PREF_BENTOML_SERVER['protocol']}{PREF_BENTOML_SERVER['path_root']}:{PREF_BENTOML_SERVER['port']}"
+    PATH_BENTOML_SERVER_BASE_URL: str = (
+        f"{PREF_BENTOML_SERVER['protocol']}{PREF_BENTOML_SERVER['path_root']}:{PREF_BENTOML_SERVER['port']}"
+    )
     PATH_CACHE: str = ".cache"
 
     # DINO 설정.
@@ -26,4 +29,11 @@ class Config:
         "device": "cuda",
         "box_threshold": 0.4,
         "text_threshold": 0.3,
+    }
+
+    # Easy OCR 설정.
+    PREF_OCR: Dict = {
+        # 다음의 URL 참조.
+        # https://www.jaided.ai/easyocr/
+        "lang": ["ko", "en"]
     }
