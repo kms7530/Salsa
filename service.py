@@ -178,7 +178,7 @@ class DINO:
         )
 
     @bentoml.api(route="/ground-box")
-    def infer(self, prompt: str, image: PILImage) -> Dict:
+    def infer_ground_box(self, prompt: str, image: PILImage) -> Dict:
         """Ground DINO 추론을 위한 API 함수.
 
         Args:
