@@ -232,3 +232,74 @@ class OCR:
         results = self.reader.readtext(image)
 
         return results
+
+
+class Bako:
+    service_vlm = bentoml.depends(VisionLanguage)
+    service_dino = bentoml.depends(DINO)
+    service_ocr = bentoml.depends(OCR)
+
+    def __init__(self) -> None:
+        """서비스 제공중인 모델을 모두 routing하는 Bako 객체의 초기화 함수."""
+
+        pass
+
+    @bentoml.api(route="/video")
+    async def infer_with_video(self, prompt: str, video_path: Path) -> str:
+        """비디오 파일을 이용한 LongVA 추론 함수. - Bako
+
+        Args:
+            prompt (str): 추론시 이용할 함수.
+            video_path (str): 수론시 이용할 영상 저장 경로.
+
+        Returns:
+            str: 추론 후 결과.
+        """
+
+        result = await self.service_vlm.to_async.infer_with_video(prompt, video_path)
+        return result
+
+    @bentoml.api(route="/image")
+    async def infer_with_image(self, prompt: str, image: PILImage) -> str:
+        """이미지 파일을 이용한 LongVA 추론 함수. - Bako
+
+        Args:
+            prompt (str): 추론시 이용할 함수.
+            image (Image, optional): 추론시 이용할 PIL 이미지 객체.
+
+        Returns:
+            str: 추론 결과.
+        """
+
+        result = await self.service_vlm.to_async.infer_with_image(prompt, image)
+        return result
+
+    @bentoml.api(route="/ground-box")
+    async def infer_ground_box(self, prompt: str, image: PILImage) -> Dict:
+        """Ground DINO 추론을 위한 API 함수. - Bako
+
+        Args:
+            prompt (str): 추론시 이용될 프롬프트.
+            image (PILImage): 추론할 이미지 객체.
+
+        Returns:
+            Dict: 결과 dict.
+        """
+
+        result = await self.service_dino.to_async.infer_ground_box(prompt, image)
+        return result
+
+    @bentoml.api(route="/ground-box")
+    async def infer_img_to_text(self, image: PILImage) -> Dict:
+        """Ground DINO 추론을 위한 API 함수. - Bako
+
+        Args:
+            prompt (str): 추론시 이용될 프롬프트.
+            image (PILImage): 추론할 이미지 객체.
+
+        Returns:
+            Dict: 결과 dict.
+        """
+
+        result = await self.service_ocr.to_async.infer_img_to_text(image)
+        return result
