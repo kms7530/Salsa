@@ -15,6 +15,7 @@ class Config:
     PATH_BENTOML_SERVER: Dict = {
         "infer_with_video": "/video",
         "infer_with_image": "/image",
+        "infer_ground_box": "/ground-box",
     }
 
     PATH_BENTOML_SERVER_BASE_URL: str = f"{PREF_BENTOML_SERVER['protocol']}{PREF_BENTOML_SERVER['path_root']}:{PREF_BENTOML_SERVER['port']}"
