@@ -132,9 +132,7 @@ def get_mata(video_code: str) -> Dict:
     # YouTube API 접속을 위한 API Key 환경변수 가져오기.
     youtube_api_key = get_youtube_api_key()
     if youtube_api_key == None:
-        print(
-            "YouTube API 사용을 위한 키를 환경변수 `YT_KEY`로 지정 후 다시 실행시켜 주세요. "
-        )
+        print("YouTube API 사용을 위한 키를 환경변수 `YT_KEY`로 지정 후 다시 실행시켜 주세요. ")
         exit(1)
 
     video_producer = get_channel_title(youtube_api_key, video_code)
