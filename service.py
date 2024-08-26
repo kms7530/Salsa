@@ -289,7 +289,7 @@ class Bako:
         result = await self.service_dino.to_async.infer_ground_box(prompt, image)
         return result
 
-    @bentoml.api(route="/ground-box")
+    @bentoml.api(route="/ocr")
     async def infer_img_to_text(self, image: PILImage) -> Dict:
         """Ground DINO 추론을 위한 API 함수. - Bako
 
