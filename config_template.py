@@ -19,3 +19,11 @@ class Config:
 
     PATH_BENTOML_SERVER_BASE_URL: str = f"{PREF_BENTOML_SERVER['protocol']}{PREF_BENTOML_SERVER['path_root']}:{PREF_BENTOML_SERVER['port']}"
     PATH_CACHE: str = ".cache"
+
+    # DINO 설정.
+    PREF_DINO: Dict = {
+        "model_name": "IDEA-Research/grounding-dino-tiny",
+        "device": "cuda",
+        "box_threshold": 0.4,
+        "text_threshold": 0.3,
+    }

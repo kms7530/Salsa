@@ -1,31 +1,25 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Dict, Union
+from typing import Dict
 
 import bentoml
 import numpy as np
 import torch
 from decord import VideoReader, cpu
-from fastapi import Depends, FastAPI
 from longva.constants import IMAGE_TOKEN_INDEX
 from longva.mm_utils import process_images, tokenizer_image_token
 from longva.model.builder import load_pretrained_model
 from PIL.Image import Image as PILImage
+from transformers import AutoModelForZeroShotObjectDetection, AutoProcessor
 
 from config import Config
-from preprocess.video import download_video
-
-# FastAPI 객체 생성.
-app = FastAPI()
-app.task_counter = 0  # 현재 동작중인 worker의 개수를 담는 변수
 
 
 @bentoml.service(
     resources={"cpu": "2"},
     traffic={"timeout": 30},
 )
-@bentoml.mount_asgi_app(app, path="/v1")
 class VisionLanguage:
     def __init__(self) -> None:
         """BentoML 서비스 구동을 위한 모델과 기타 객체 및 옵션 생성."""
@@ -167,35 +161,46 @@ class VisionLanguage:
         return outputs
 
 
-@app.get("/api/health")
-def health_check(service: VisionLanguage = Depends(bentoml.get_current_service)):
-    """FastAPI 서비스 상태 확인용 API.
+@bentoml.service(
+    resources={"cpu": "1"},
+    traffic={"timeout": 10},
+)
+class DINO:
+    def __init__(self) -> None:
+        """Ground DINO의 serving을 위한 객체 생성 함수."""
 
-    Returns:
-        str: OK.
-    """
+        model_id = Config.PREF_DINO["model_name"]
+        device = Config.PREF_DINO["device"]
 
-    return "OK"
+        self.processor = AutoProcessor.from_pretrained(model_id)
+        self.model = AutoModelForZeroShotObjectDetection.from_pretrained(model_id).to(
+            device
+        )
 
+    @bentoml.api(route="/ground-box")
+    def infer(self, prompt: str, image: PILImage) -> Dict:
+        """Ground DINO 추론을 위한 API 함수.
 
-@app.get("/keywords")
-def health_check(
-    code: Union[str, None],
-    service: VisionLanguage = Depends(bentoml.get_current_service),
-) -> Dict:
-    """주어진 영상 코드를 통해 영상을 받아 키워드를 도출하는 API 함수.
+        Args:
+            prompt (str): 추론시 이용될 프롬프트.
+            image (PILImage): 추론할 이미지 객체.
 
-    Args:
-        code (Union[str, None]): YouTube 영상 코드.
-        service (VisionLanguage, optional): BentoML과 연결을 위한 인자. Defaults to Depends(bentoml.get_current_service).
+        Returns:
+            Dict: 결과 dict.
+        """
 
-    Returns:
-        Dict: 영상의 키워드 결과값.
-    """
+        inputs = self.processor(images=image, text=prompt, return_tensors="pt").to(
+            self.model.device
+        )
+        with torch.no_grad():
+            outputs = self.model(**inputs)
 
-    # Youtube 영상 받아오기.
-    download_video(code, Config.PATH_CACHE)
+        results = self.processor.post_process_grounded_object_detection(
+            outputs,
+            inputs.input_ids,
+            box_threshold=Config.PREF_DINO["box_threshold"],
+            text_threshold=Config.PREF_DINO["text_threshold"],
+            target_sizes=[image.size[::-1]],
+        )
 
-    # TODO: 기타 pipeline 작성.
-
-    return "OK"
+        return results

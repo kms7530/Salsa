@@ -1,7 +1,7 @@
 service: "service:VisionLanguage"
 labels:
   owner: guacamole-company
-  project: gallery
+  project: vigilant
 include:
   - "*.py"
 python:
