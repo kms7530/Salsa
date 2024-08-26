@@ -218,7 +218,7 @@ class OCR:
         self.reader = easyocr.Reader(Config.PREF_OCR["lang"])
 
     @bentoml.api(route="/ocr")
-    def infer_img_to_text(self, prompt: str, image: PILImage) -> Dict:
+    def infer_img_to_text(self, image: PILImage) -> Dict:
         """Ground DINO 추론을 위한 API 함수.
 
         Args:
