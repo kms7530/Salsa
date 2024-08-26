@@ -28,3 +28,10 @@ class Config:
         "box_threshold": 0.4,
         "text_threshold": 0.3,
     }
+
+    # Easy OCR 설정.
+    PREF_OCR: Dict = {
+        # 다음의 URL 참조.
+        # https://www.jaided.ai/easyocr/
+        "lang": ["ko", "en"]
+    }

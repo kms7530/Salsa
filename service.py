@@ -4,6 +4,7 @@ from pathlib import Path
 from typing import Dict
 
 import bentoml
+import easyocr
 import numpy as np
 import torch
 from decord import VideoReader, cpu
@@ -202,5 +203,32 @@ class DINO:
             text_threshold=Config.PREF_DINO["text_threshold"],
             target_sizes=[image.size[::-1]],
         )
+
+        return results
+
+
+@bentoml.service(
+    resources={"cpu": "1"},
+    traffic={"timeout": 3},
+)
+class OCR:
+    def __init__(self) -> None:
+        """Ground DINO의 serving을 위한 객체 생성 함수."""
+
+        self.reader = easyocr.Reader(Config.PREF_OCR["lang"])
+
+    @bentoml.api(route="/ocr")
+    def infer_img_to_text(self, prompt: str, image: PILImage) -> Dict:
+        """Ground DINO 추론을 위한 API 함수.
+
+        Args:
+            prompt (str): 추론시 이용될 프롬프트.
+            image (PILImage): 추론할 이미지 객체.
+
+        Returns:
+            Dict: 결과 dict.
+        """
+
+        results = self.reader.readtext(image)
 
         return results
