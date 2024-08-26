@@ -9,29 +9,34 @@
 # 🏗️ 프로젝트 구조
 ```plain text
 ./vigilant
-├── docs                -> 구조 및 참조 문서. 
+├── README.md
+├── api.py 						-> FastAPI 배포 코드. 
+├── config
+│   └── bento					-> BentoML 배포 설정. 
+│       ├── config_dino.yaml	-> DINO 배포 설정. 
+│       └── config_vlm.yaml		-> LongVA 배포 설정. 
+├── config_template.py          -> `config.py` 예시. 
+├── docs                		-> 구조 및 참조 문서. 
 │   ├── docs.d2
 │   ├── docs.svg
 │   ├── vigilant.d2
 │   └── vigilant.svg
-├── inferences          -> VLM, OCR 및 LLM 서비스 추론용 wrapper 라이브러리.
-│   ├── lang.py         -> LLM 서비스 추론용. 
-│   ├── ocr.py          -> OCR 추론용. 
-│   └── vision_lang.py  -> VLM 추론용(Image, Video). 
-├── install.sh          -> 의존성 라이브러리 설치를 위한 shell script. 
-├── main.py             -> 실행 파일. 
-├── pipelines           -> 각자 맡은 파이프라인 부분. 
+├── inferences          		-> VLM, OCR 및 LLM 서비스 추론용 wrapper 라이브러리.
+│   ├── lang.py         		-> LLM 서비스 추론용. 
+│   ├── ocr.py          		-> OCR 추론용. 
+│   └── vision_lang.py  		-> VLM 추론용(Image, Video). 
+├── install.sh          		-> 의존성 라이브러리 설치를 위한 shell script. 
+├── main.py             		-> 실행 파일. 
+├── pipelines           		-> 각 파이프라인 부분. 
 │   └── video_section.py
-├── poetry.lock
-├── preprocess          -> 전처리 관련 라이브러리. 
-│   ├── image.py        -> 이미지 전처리. 
-│   ├── prompt.py       -> 프롬프트 전처리. 
-│   └── video.py        -> 비디오 전처리. 
-├── prompts             -> 프롬프트 저장용 폴더. 
-│   └── EXAMPLE         -> 프롬프트 예시 파일. 
-├── pyproject.toml
+├── preprocess          		-> 전처리 관련 라이브러리. 
+│   ├── image.py        		-> 이미지 전처리. 
+│   ├── prompt.py       		-> 프롬프트 전처리. 
+│   └── video.py        		-> 비디오 전처리. 
+├── prompts             		-> 프롬프트 저장용 폴더. 
+│   └── EXAMPLE         		-> 프롬프트 예시 파일. 
 ├── requirements.txt
-└── service.py
+└── service.py                  -> BentoML 배포 코드. 
 ```
 
 ## 규칙
@@ -39,7 +44,6 @@
 - Pipeline 동작 중 전처리가 필요한 부분은 `preprocess`, 모델을 통한 부분은 `inferences`에 생성 후 이용해주시기 바랍니다. 
 - 생성해주신 모든 함수에 대해서는, `docstring`을 작성해주시기 바랍니다. 
   - 작성이 되어있지 않으면, 다른분들이 작업하기 힘듭니다. 😢
-- Dependency가 필요한 경우, `poetry add TARGET`을 통해 라이브러리를 추가해주시기 바랍니다. 
 
 # 🚀 실행 방법
 ```bash
@@ -49,9 +53,17 @@ chmod -R 666 ./install.sh
 # 의존성 라이브러리 설치(LongVA, Vigilant)
 bash ./install.sh
 
+# 설정 파일 복사. 
+cp config_template.py config.py
+
 # 위의 로그 확인 후 문제가 발생하지 않은 경우,
-# 다음 명령어로 실행. 
-bentoml serve service:VisionLanguage
+# 다음 명령어로 모델 배포. 
+cd config/bento
+bentoml serve service:VisionLanguage -f config_vlm.yaml
+bentoml serve service:dino -f config_dino.yaml
+
+# 다음의 명령어로 FastAPI 서버 가동. 
+uvicorn api:app
 ```
 
 # 📝 프롬프트 작성
