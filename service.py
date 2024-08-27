@@ -19,7 +19,7 @@ from config import Config
 
 @bentoml.service(
     resources={"cpu": "2"},
-    traffic={"timeout": 30},
+    traffic={"timeout": 300},
 )
 class VisionLanguage:
     def __init__(self) -> None:
@@ -38,6 +38,7 @@ class VisionLanguage:
         self.tokenizer, self.model, self.image_processor, _ = load_pretrained_model(
             model_path, None, "llava_qwen", device_map="cuda:0"
         )
+        self.ocr_service = OCR()
 
     def __generate_prompt(self, prompt: str) -> torch.Tensor:
         """입력된 프롬프트를 모델에서 추론 가능하게 변환하여 Tensor로 반환하는 함수.
@@ -160,6 +161,30 @@ class VisionLanguage:
         outputs = self.__run_inference(input_ids, images_tensor, "image", image=image)
 
         return outputs
+
+    @bentoml.api(route="/describe_image")
+    def describe_image(self, prompt: str, image: PILImage) -> Dict[str, str]:
+        """이미지 파일과 OCR 텍스트를 이용한 LongVA 추론 함수.
+
+        Args:
+            prompt (str): 추가적인 설명 요청 프롬프트.
+            image (Image): 추론시 이용할 PIL 이미지 객체.
+
+        Returns:
+            Dict[str, str]: 추론 결과를 담은 딕셔너리.
+        """
+        # OCR 텍스트 추출.
+        ocr_results = self.ocr_service.infer_img_to_text(image)
+        ocr_text = " ".join([result[1] for result in ocr_results])
+
+        # 프롬프트 생성.
+        # TODO: 그런데 이 부분 prompt에서 한글 + 영어 섞여도 되나 의문.
+        full_prompt = f"썸네일에 적혀있는 글자는 다음과 같습니다: {ocr_text}\n{prompt}\n이제 이 맥락을 고려해서 썸네일의 상황을 더 자세하게 묘사해주세요."
+
+        # infer_with_image 함수 호출
+        outputs = self.infer_with_image(full_prompt, image)
+
+        return {"description": outputs}
 
 
 @bentoml.service(
@@ -302,4 +327,18 @@ class Bako:
         """
 
         result = await self.service_ocr.to_async.infer_img_to_text(image)
+        return result
+
+    @bentoml.api(route="/describe_image")
+    async def describe_image(self, prompt: str, image: PILImage) -> Dict[str, str]:
+        """이미지 파일과 OCR 텍스트를 이용한 LongVA 추론 함수. - Bako
+
+        Args:
+            prompt (str): 추가적인 설명 요청 프롬프트.
+            image (Image): 추론시 이용할 PIL 이미지 객체.
+
+        Returns:
+            Dict[str, str]: 추론 결과를 담은 딕셔너리.
+        """
+        result = await self.service_vlm.to_async.describe_image(prompt, image)
         return result
