@@ -164,30 +164,6 @@ class VisionLanguage:
 
         return outputs
 
-    @bentoml.api(route="/describe_image")
-    def describe_image(self, prompt: str, image: PILImage) -> Dict[str, str]:
-        """이미지 파일과 OCR 텍스트를 이용한 LongVA 추론 함수.
-
-        Args:
-            prompt (str): 추가적인 설명 요청 프롬프트.
-            image (Image): 추론시 이용할 PIL 이미지 객체.
-
-        Returns:
-            Dict[str, str]: 추론 결과를 담은 딕셔너리.
-        """
-        # OCR 텍스트 추출.
-        ocr_results = self.ocr_service.infer_img_to_text(image)
-        ocr_text = " ".join([result[1] for result in ocr_results])
-
-        # 프롬프트 생성.
-        # TODO: 그런데 이 부분 prompt에서 한글 + 영어 섞여도 되나 의문.
-        full_prompt = f"썸네일에 적혀있는 글자는 다음과 같습니다: {ocr_text}\n{prompt}\n이제 이 맥락을 고려해서 썸네일의 상황을 더 자세하게 묘사해주세요."
-
-        # infer_with_image 함수 호출
-        outputs = self.infer_with_image(full_prompt, image)
-
-        return {"description": outputs}
-
 
 @bentoml.service(
     resources={"cpu": "1"},

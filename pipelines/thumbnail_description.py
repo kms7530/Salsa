@@ -1,14 +1,17 @@
 from PIL import Image
 
-from inferences.vision_lang import infer_with_video, describe_image, infer_with_image
+from inferences.ocr import ocr_image
+from inferences.vision_lang import infer_with_image
 from preprocess.thumbnail import download_thumbnail
+
+from typing import Dict
 
 
 def get_image_description(
     video_id: str,
     path_cache: str,
     context: str,
-) -> str:
+) -> Dict[str, str]:
     """비디오 ID를 이용해 썸네일을 가져와 설명을 생성하는 함수.
 
     Args:
@@ -17,7 +20,7 @@ def get_image_description(
         context (str): 추가적인 컨텍스트 정보.
 
     Returns:
-        str: 생성된 이미지 설명.
+        Dict[str, str]: 생성된 이미지 설명.
     """
     # TODO: 동작 테스트 필요.
     # 썸네일 다운로드
@@ -27,10 +30,8 @@ def get_image_description(
 
     # 이미지 로드
     with Image.open(thumbnail_path) as image:
-        # OCR 텍스트 추출
-        # TODO : OCR 서비스를 이용해야함. 우선 dummy 데이터로 대체.
-        ocr_results = {"result": "OCR 텍스트 추출 결과"}
-        # ocr_results = self.ocr_service.infer_img_to_text(image)
+        # inferences.OCR 서비스 이용.
+        ocr_results = ocr_image(thumbnail_path)
         ocr_text = " ".join([result[1] for result in ocr_results])
 
         # 프롬프트 생성
@@ -39,4 +40,4 @@ def get_image_description(
         # 이미지 설명 생성
         description = infer_with_image(full_prompt, image)
 
-    return description
+    return {"description": description}
