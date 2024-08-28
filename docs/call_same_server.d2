@@ -1,0 +1,29 @@
+api\.py
+inferences {
+    model 1
+    model 2
+    \.\.\.
+}
+pipelines {
+    pipeline 1
+    pipeline 2
+    \.\.\.
+}
+preprocess {
+    preprocess 1
+    preprocess 2
+    \.\.\.
+}
+service\.py
+
+api\.py -> pipelines.pipeline 1: info
+api\.py <- pipelines.pipeline 1: processed result
+
+pipelines.pipeline 1 -> preprocess.preprocess 2: raw
+pipelines.pipeline 1 <- preprocess.preprocess 2: processed
+
+pipelines.pipeline 1 -> inferences.model 2: prompt, image, video, etc...
+pipelines.pipeline 1 <- inferences.model 2: result
+
+inferences -> service\.py:HTTP req
+inferences <- service\.py:HTTP resp
