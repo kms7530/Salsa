@@ -1,0 +1,33 @@
+API Server {
+    api\.py
+    inferences {
+        model 1
+        model 2
+        \.\.\.
+    }
+    pipelines {
+        pipeline 1
+        pipeline 2
+        \.\.\.
+    }
+    preprocess {
+        preprocess 1
+        preprocess 2
+        \.\.\.
+    }
+}
+GPU Server {
+    service\.py
+}
+
+API Server.api\.py -> API Server.pipelines.pipeline 1: info
+API Server.api\.py <- API Server.pipelines.pipeline 1: processed result
+
+API Server.pipelines.pipeline 1 -> API Server.preprocess.preprocess 2: raw
+API Server.pipelines.pipeline 1 <- API Server.preprocess.preprocess 2: processed
+
+API Server.pipelines.pipeline 1 -> API Server.inferences.model 2: prompt, image, video, etc...
+API Server.pipelines.pipeline 1 <- API Server.inferences.model 2: result
+
+API Server.inferences -> GPU Server.service\.py:HTTP req
+API Server.inferences <- GPU Server.service\.py:HTTP resp
