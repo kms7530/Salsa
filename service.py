@@ -311,7 +311,7 @@ class Bako:
         return result
 
     @bentoml.api(route="/ocr")
-    async def infer_img_to_text(self, image: PILImage) -> Dict:
+    async def infer_img_to_text(self, image: PILImage) -> List:
         """Ground DINO 추론을 위한 API 함수. - Bako
 
         Args:
