@@ -15,6 +15,26 @@ pip install flash-attn --no-build-isolation --no-cache-dir
 pip install -r requirements.txt
 
 echo ""
+echo ">>> Clone repo from https://github.com/IDEA-Research/GroundingDINO.git ..."
+echo ""
+cd ..
+git clone https://github.com/IDEA-Research/GroundingDINO.git
+
+echo ""
+echo ">>> Install dependencies for Grounding DINO ..."
+echo ""
+cd GroundingDINO/
+pip install -e .
+
+echo ""
+echo ">>> Download Grouding DINO weight ..."
+echo ""
+mkdir weights
+cd weights
+wget https://github.com/IDEA-Research/GroundingDINO/releases/download/v0.1.0-alpha/groundingdino_swint_ogc.pth
+cd ..
+
+echo ""
 echo ">>> Install dependencies for Vigilant ..."
 echo ""
 cd ..

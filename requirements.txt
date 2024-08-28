@@ -5,3 +5,4 @@ bentoml
 pillow
 fastapi
 pytubefix
+easyocr
