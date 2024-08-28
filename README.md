@@ -1,22 +1,21 @@
-# 💂 Vigilant
+# 💃 Salsa
 <p align="center">
   <img 
-    src="http://vignette4.wikia.nocookie.net/lotr/images/9/9f/Sauron_eye_barad_dur.jpg" 
+    src="https://github.com/kms7530/Salsa/blob/main/docs/IMG_1206.png?raw=true" 
     alt="사우론의 눈"
   />
 </p>
 
 # 🏗️ 프로젝트 구조
 ```plain text
-./vigilant
+./Salsa
 ├── README.md
-├── api.py 						-> FastAPI 배포 코드. 
-├── config
-│   └── bento					-> BentoML 배포 설정. 
-│       ├── config_dino.yaml	-> DINO 배포 설정. 
-│       └── config_vlm.yaml		-> LongVA 배포 설정. 
+├── api.py 						-> FastAPI 배포 코드.
+├── bentofile.yaml    -> BentoML 배포 코드.
 ├── config_template.py          -> `config.py` 예시. 
 ├── docs                		-> 구조 및 참조 문서. 
+│   ├── call_dif_server.d2
+│   ├── call_same_server.d2
 │   ├── docs.d2
 │   ├── docs.svg
 │   ├── vigilant.d2
