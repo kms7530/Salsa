@@ -27,7 +27,6 @@ def get_image_description(
 
     # 이미지 로드
     with Image.open(thumbnail_path) as image:
-
         # OCR 텍스트 추출
         # TODO : OCR 서비스를 이용해야함. 우선 dummy 데이터로 대체.
         ocr_results = {"result": "OCR 텍스트 추출 결과"}
