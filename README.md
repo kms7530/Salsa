@@ -58,9 +58,7 @@ cp config_template.py config.py
 
 # 위의 로그 확인 후 문제가 발생하지 않은 경우,
 # 다음 명령어로 모델 배포. 
-cd config/bento
-bentoml serve service:VisionLanguage -f config_vlm.yaml
-bentoml serve service:dino -f config_dino.yaml
+bentoml serve -p PORT_NUMBER
 
 # 다음의 명령어로 FastAPI 서버 가동. 
 uvicorn api:app
