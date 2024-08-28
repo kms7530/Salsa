@@ -1,18 +1,20 @@
 from __future__ import annotations
 
+import hashlib
+import os
 from pathlib import Path
-from typing import Dict
+from typing import Dict, List
 
 import bentoml
 import easyocr
 import numpy as np
 import torch
 from decord import VideoReader, cpu
+from groundingdino.util.inference import load_image, load_model, predict
 from longva.constants import IMAGE_TOKEN_INDEX
 from longva.mm_utils import process_images, tokenizer_image_token
 from longva.model.builder import load_pretrained_model
 from PIL.Image import Image as PILImage
-from transformers import AutoModelForZeroShotObjectDetection, AutoProcessor
 
 from config import Config
 
@@ -170,12 +172,9 @@ class DINO:
     def __init__(self) -> None:
         """Ground DINO의 serving을 위한 객체 생성 함수."""
 
-        model_id = Config.PREF_DINO["model_name"]
-        device = Config.PREF_DINO["device"]
-
-        self.processor = AutoProcessor.from_pretrained(model_id)
-        self.model = AutoModelForZeroShotObjectDetection.from_pretrained(model_id).to(
-            device
+        self.model = load_model(
+            "GroundingDINO/groundingdino/config/GroundingDINO_SwinT_OGC.py",
+            "GroundingDINO/weights/groundingdino_swint_ogc.pth",
         )
 
     @bentoml.api(route="/ground-box")
@@ -190,21 +189,29 @@ class DINO:
             Dict: 결과 dict.
         """
 
-        inputs = self.processor(images=image, text=prompt, return_tensors="pt").to(
-            self.model.device
-        )
-        with torch.no_grad():
-            outputs = self.model(**inputs)
+        # 이미지 객체를 문자열로 변환하여 해시 생성
+        image_hash = hashlib.md5(image.tobytes()).hexdigest()
 
-        results = self.processor.post_process_grounded_object_detection(
-            outputs,
-            inputs.input_ids,
-            box_threshold=Config.PREF_DINO["box_threshold"],
-            text_threshold=Config.PREF_DINO["text_threshold"],
-            target_sizes=[image.size[::-1]],
+        # 해시의 앞 5글자 추출
+        hash_prefix = image_hash[:5]
+        path_image = os.path.join(Config.PATH_CACHE, f"{hash_prefix}.jpg")
+
+        image = image.convert("RGB").save(path_image)
+
+        BOX_TRESHOLD = 0.35
+        TEXT_TRESHOLD = 0.25
+
+        _, image = load_image(path_image)
+
+        boxes, logits, phrases = predict(
+            model=self.model,
+            image=image,
+            caption=prompt,
+            box_threshold=BOX_TRESHOLD,
+            text_threshold=TEXT_TRESHOLD,
         )
 
-        return results
+        return {"boxes": boxes.tolist(), "logits": logits.tolist(), "phrases": phrases}
 
 
 @bentoml.service(
@@ -218,7 +225,7 @@ class OCR:
         self.reader = easyocr.Reader(Config.PREF_OCR["lang"])
 
     @bentoml.api(route="/ocr")
-    def infer_img_to_text(self, image: PILImage) -> Dict:
+    def infer_img_to_text(self, image: PILImage) -> List:
         """Ground DINO 추론을 위한 API 함수.
 
         Args:
@@ -229,11 +236,25 @@ class OCR:
             Dict: 결과 dict.
         """
 
-        results = self.reader.readtext(image)
+        # 이미지 객체를 문자열로 변환하여 해시 생성
+        image_hash = hashlib.md5(image.tobytes()).hexdigest()
+
+        # 해시의 앞 5글자 추출
+        hash_prefix = image_hash[:5]
+        path_image = os.path.join(Config.PATH_CACHE, f"{hash_prefix}.jpg")
+
+        image = image.convert("RGB").save(path_image)
+
+        results = self.reader.readtext(path_image)
+        results = [result[1] for result in results]
 
         return results
 
 
+@bentoml.service(
+    resources={"cpu": "4"},
+    traffic={"timeout": 30},
+)
 class Bako:
     service_vlm = bentoml.depends(VisionLanguage)
     service_dino = bentoml.depends(DINO)
