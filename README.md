@@ -3,6 +3,7 @@
   <img 
     src="https://github.com/kms7530/Salsa/blob/main/docs/IMG_1206.png?raw=true" 
     alt="사우론의 눈"
+    style="width: 500px;"
   />
 </p>
 
