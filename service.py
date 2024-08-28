@@ -251,6 +251,10 @@ class OCR:
         return results
 
 
+@bentoml.service(
+    resources={"cpu": "4"},
+    traffic={"timeout": 30},
+)
 class Bako:
     service_vlm = bentoml.depends(VisionLanguage)
     service_dino = bentoml.depends(DINO)
