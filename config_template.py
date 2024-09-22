@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import List
+from typing import List, Dict
 
 
 @dataclass
@@ -19,7 +19,9 @@ class Config:
         "infer_img_to_text": "/ocr",
     }
 
-    PATH_BENTOML_SERVER_BASE_URL: str = f"{PREF_BENTOML_SERVER['protocol']}{PREF_BENTOML_SERVER['path_root']}:{PREF_BENTOML_SERVER['port']}"
+    PATH_BENTOML_SERVER_BASE_URL: str = (
+        f"{PREF_BENTOML_SERVER['protocol']}{PREF_BENTOML_SERVER['path_root']}:{PREF_BENTOML_SERVER['port']}"
+    )
     PATH_CACHE: str = ".cache"
 
     # DINO 설정.
@@ -35,4 +37,15 @@ class Config:
         # 다음의 URL 참조.
         # https://www.jaided.ai/easyocr/
         "lang": ["ko", "en"]
+    }
+
+    # 메모리 관련 설정.
+    MIN_REQUIRED_MEMORY: float = 4.0  # 시스템에 필요한 최소 메모리 (GB)
+
+    # 각 서비스별 필요 메모리 설정.
+    MEMORY_REQUIREMENTS: Dict[str, float] = {
+        "infer_with_video": 2.0,  # 비디오 추론에 필요한 메모리 (GB)
+        "infer_with_image": 1.5,  # 이미지 추론에 필요한 메모리 (GB)
+        "infer_ground_box": 1.0,  # DINO 추론에 필요한 메모리 (GB)
+        "infer_img_to_text": 0.5,  # OCR에 필요한 메모리 (GB)
     }
