@@ -193,6 +193,10 @@ class DINO:
         # 이미지 객체를 문자열로 변환하여 해시 생성
         image_hash = hashlib.md5(image.tobytes()).hexdigest()
 
+        # .cache 디렉토리 생성
+        cache_dir = Path(Config.PATH_CACHE)
+        cache_dir.mkdir(parents=True, exist_ok=True)
+
         # 해시의 앞 5글자 추출
         hash_prefix = image_hash[:5]
         path_image = os.path.join(Config.PATH_CACHE, f"{hash_prefix}.jpg")
@@ -222,8 +226,8 @@ class DINO:
 class OCR:
     def __init__(self) -> None:
         """Ground DINO의 serving을 위한 객체 생성 함수."""
-
-        self.reader = easyocr.Reader(Config.PREF_OCR["lang"])
+        config = Config()
+        self.reader = easyocr.Reader(config.PREF_OCR["lang"])
 
     @bentoml.api(route="/ocr")
     def infer_img_to_text(self, image: PILImage) -> List:
@@ -262,7 +266,6 @@ class Bako:
     service_ocr = bentoml.depends(OCR)
 
     def __init__(self) -> None:
-        """서비스 제공중인 모델을 모두 routing하는 Bako 객체의 초기화 함수."""
         memory_check_result = check_system_memory()
         print_memory_check_result(memory_check_result)
 
@@ -270,6 +273,8 @@ class Bako:
             raise MemoryError(
                 "System does not meet the memory requirements. Please check the output above."
             )
+        else:
+            print("메모리 체킹 완료")
 
     @bentoml.api(route="/video")
     async def infer_with_video(self, prompt: str, video_path: Path) -> str:
