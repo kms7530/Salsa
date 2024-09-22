@@ -12,7 +12,7 @@
 ./Salsa
 ├── README.md
 ├── api.py 						-> FastAPI 배포 코드.
-├── bentofile.yaml    -> BentoML 배포 코드.
+├── bentofile.yaml              -> BentoML 배포 코드.
 ├── config_template.py          -> `config.py` 예시. 
 ├── docs                		-> 구조 및 참조 문서. 
 │   ├── call_dif_server.d2
@@ -42,20 +42,34 @@
 ## 규칙
 - 각자 작업중인 Pipeline에 대해 `./pipelines`에 파일을 생성 후 작업하시면 됩니다. 
 - Pipeline 동작 중 전처리가 필요한 부분은 `preprocess`, 모델을 통한 부분은 `inferences`에 생성 후 이용해주시기 바랍니다. 
-- 생성해주신 모든 함수에 대해서는, `docstring`을 작성해주시기 바랍니다. 
-  - 작성이 되어있지 않으면, 다른분들이 작업하기 힘듭니다. 😢
 
 # 🚀 실행 방법
+## 의존성 라이브러리 설치
+- 다음의 방법을 이용하여 의존성 파일을 설치합니다. 
 ```bash
 # install.sh의 실행 권한 부여. 
 chmod -R 666 ./install.sh
 
 # 의존성 라이브러리 설치(LongVA, Vigilant)
 bash ./install.sh
+```
 
+## 설정 파일 수정
+- 다음의 명령어를 이용하여 설정 템플릿 복사 및 수정을 합니다. 
+```bash
 # 설정 파일 복사. 
-cp config_template.py config.py
+cp config/config_template.py ./config.py
+cp config/bentofile.yaml ./bentofile.yaml
 
+# VIM을 이용하여 설정 수정 후 저장. 
+vim config.py
+vim bentoml
+```
+
+## 프로젝트 실행
+- 다음의 명령어를 이용하여 프로젝트를 실행합니다. 
+- 최초 모델 서버 구동 시 <b>모델 다운로드로 인해 시간이 다소 소요</b>될수 있습니다. 
+```bash
 # 위의 로그 확인 후 문제가 발생하지 않은 경우,
 # 다음 명령어로 모델 배포. 
 bentoml serve -p PORT_NUMBER
