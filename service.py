@@ -17,6 +17,7 @@ from longva.model.builder import load_pretrained_model
 from PIL.Image import Image as PILImage
 
 from config import Config
+from utils import check_system_memory, print_memory_check_result
 
 
 @bentoml.service(
@@ -262,8 +263,13 @@ class Bako:
 
     def __init__(self) -> None:
         """서비스 제공중인 모델을 모두 routing하는 Bako 객체의 초기화 함수."""
+        memory_check_result = check_system_memory()
+        print_memory_check_result(memory_check_result)
 
-        pass
+        if not all(memory_check_result.values()):
+            raise MemoryError(
+                "System does not meet the memory requirements. Please check the output above."
+            )
 
     @bentoml.api(route="/video")
     async def infer_with_video(self, prompt: str, video_path: Path) -> str:
