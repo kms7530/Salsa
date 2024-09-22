@@ -55,12 +55,8 @@ bash ./install.sh
 ```
 
 ## 설정 파일 수정
-- 다음의 명령어를 이용하여 설정 템플릿 복사 및 수정을 합니다. 
+- 다음의 명령어를 이용하여 설정 템플릿을 수정을 합니다. 
 ```bash
-# 설정 파일 복사. 
-cp config/config_template.py ./config.py
-cp config/bentofile.yaml ./bentofile.yaml
-
 # VIM을 이용하여 설정 수정 후 저장. 
 vim config.py
 vim bentoml
