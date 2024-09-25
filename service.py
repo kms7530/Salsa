@@ -159,6 +159,79 @@ class VisionLanguage:
 
         return outputs
 
+    def __run_inference_qwen2vl(
+        self,
+        prompt: str,
+        modalities: str,
+        image: PILImage = None,
+        video_path: Path = "",
+    ) -> str:
+        """Qwen2-VL 모델을 이용해, modality에 따른 추론 후 결과를 반환하는 내부 함수.
+
+        Args:
+            prompt (str): 모델 추론시 사용될 프롬프트.
+            modalities (str): 입력되는 데이터의 종류(video / image)
+            image (PILImage, optional): 추론시 사용될 이미지 객체. Defaults to None.
+            video_path (Path, optional): 추론시 사용될 비디오의 경로. Defaults to "".
+
+        Returns:
+            str: 추론한 결과 텍스트.
+        """
+
+        messages = [
+            {
+                "role": "user",
+                "content": [
+                    {
+                        "type": modalities,
+                    },
+                    {"type": "text", "text": prompt},
+                ],
+            }
+        ]
+
+        # Modality에 맞는 데이터 입력.
+        if modalities == "image":
+            messages["content"]["image"] = image
+        elif modalities == "video":
+            messages["content"]["video"] = video_path
+
+        # Prompt 양식에 맞도록 input 생성.
+        text = self.processor.apply_chat_template(
+            messages, tokenize=False, add_generation_prompt=True
+        )
+        image_inputs, video_inputs = process_vision_info(messages)
+
+        # Modality에 맞는 입력 tensor 생성.
+        if modalities == "image":
+            inputs = self.processor(
+                images=image_inputs,
+                padding=True,
+                return_tensors="pt",
+            )
+        elif modalities == "video":
+            inputs = self.processor(
+                text=text,
+                videos=video_inputs,
+                padding=True,
+                return_tensors="pt",
+            )
+        inputs = inputs.to("cuda")
+
+        # Output 생성.
+        generated_ids = self.model.generate(**inputs, max_new_tokens=128)
+        generated_ids_trimmed = [
+            out_ids[len(in_ids) :]
+            for in_ids, out_ids in zip(inputs.input_ids, generated_ids)
+        ]
+        output = self.processor.batch_decode(
+            generated_ids_trimmed,
+            skip_special_tokens=True,
+            clean_up_tokenization_spaces=False,
+        )
+
+        return output
+
     @bentoml.api(route="/video")
     def infer_with_video(self, prompt: str, video_path: Path) -> str:
         """비디오 파일을 이용한 LongVA 추론 함수.
@@ -173,7 +246,10 @@ class VisionLanguage:
 
         # 추론.
         outputs = self.__callback_by_model(
-            {"LongVA": self.__run_inference_longva},
+            {
+                "LongVA": self.__run_inference_longva,
+                "Qwen2-VL": self.__run_inference_qwen2vl,
+            },
             prompt=prompt,
             modalities="video",
             video_path=video_path,
@@ -195,7 +271,10 @@ class VisionLanguage:
 
         # 추론.
         outputs = self.__callback_by_model(
-            {"LongVA": self.__run_inference_longva},
+            {
+                "LongVA": self.__run_inference_longva,
+                "Qwen2-VL": self.__run_inference_qwen2vl,
+            },
             prompt=prompt,
             modalities="image",
             image=image,
