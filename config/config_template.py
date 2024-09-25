@@ -47,6 +47,9 @@ class Config:
         # }
         # "max_frames_num": 16
         "model_name": "Qwen/Qwen2-VL-2B-Instruct-GPTQ-Int8",
+        # Flash Attention 2 사용 설정.
+        # Qwen2-VL에서만 사용 가능.
+        "use_flash_attn": True,
     }
 
     # DINO 설정.
