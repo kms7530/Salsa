@@ -3,7 +3,7 @@ from __future__ import annotations
 import hashlib
 import os
 from pathlib import Path
-from typing import Dict, List
+from typing import Callable, Dict, List
 
 import bentoml
 import easyocr
@@ -15,6 +15,8 @@ from longva.constants import IMAGE_TOKEN_INDEX
 from longva.mm_utils import process_images, tokenizer_image_token
 from longva.model.builder import load_pretrained_model
 from PIL.Image import Image as PILImage
+from qwen_vl_utils import process_vision_info
+from transformers import AutoProcessor, Qwen2VLForConditionalGeneration
 
 from config import Config
 
@@ -40,6 +42,13 @@ class VisionLanguage:
                 self.model_path,
                 torch_dtype="auto",
                 device_map="auto",
+                # Flash attention 2 관련 설정.
+                torch_dtype=(
+                    torch.bfloat16 if Config.PREF_VLM["use_flash_attn"] else None
+                ),
+                attn_implementation=(
+                    "flash_attention_2" if Config.PREF_VLM["use_flash_attn"] else ""
+                ),
             )
             self.processor = AutoProcessor.from_pretrained(self.model_path)
         else:
