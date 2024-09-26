@@ -46,7 +46,7 @@ class Config:
     # OCR: 0.09 GB
 
     # 각 서비스별 필요 메모리 설정.
-    MEMORY_REQUIREMENTS: Dict[str, float] = {
+    MEMORY_REQUIREMENTS = {
         "infer_with_video": 0.23,  # 비디오 추론에 필요한 메모리 (GB)
         "infer_with_image": 0.1,  # 이미지 추론에 필요한 메모리 (GB)
         "infer_ground_box": 0.64,  # DINO 추론에 필요한 메모리 (GB)
