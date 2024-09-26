@@ -37,6 +37,7 @@ class VisionLanguage:
             self.tokenizer, self.model, self.image_processor, _ = load_pretrained_model(
                 self.model_path, None, "longva", device_map="cuda:0"
             )
+        # 모델 설정이 Qwen2-VL인 경우.
         elif "Qwen2-VL" in self.model_path:
             self.model = Qwen2VLForConditionalGeneration.from_pretrained(
                 self.model_path,
@@ -205,6 +206,7 @@ class VisionLanguage:
         # Modality에 맞는 입력 tensor 생성.
         if modalities == "image":
             inputs = self.processor(
+                text=text,
                 images=image_inputs,
                 padding=True,
                 return_tensors="pt",
@@ -234,7 +236,7 @@ class VisionLanguage:
 
     @bentoml.api(route="/video")
     def infer_with_video(self, prompt: str, video_path: Path) -> str:
-        """비디오 파일을 이용한 LongVA 추론 함수.
+        """비디오 파일을 이용한 VLM 추론 함수.
 
         Args:
             prompt (str): 추론시 이용할 함수.
@@ -244,7 +246,7 @@ class VisionLanguage:
             str: 추론 후 결과.
         """
 
-        # 추론.
+        # 설정된 모델에 따른 결과 추론.
         outputs = self.__callback_by_model(
             {
                 "LongVA": self.__run_inference_longva,
@@ -259,7 +261,7 @@ class VisionLanguage:
 
     @bentoml.api(route="/image")
     def infer_with_image(self, prompt: str, image: PILImage) -> str:
-        """이미지 파일을 이용한 LongVA 추론 함수.
+        """이미지 파일을 이용한 VLM 추론 함수.
 
         Args:
             prompt (str): 추론시 이용할 함수.
@@ -269,7 +271,7 @@ class VisionLanguage:
             str: 추론 결과.
         """
 
-        # 추론.
+        # 설정된 모델에 따른 결과 추론.
         outputs = self.__callback_by_model(
             {
                 "LongVA": self.__run_inference_longva,
