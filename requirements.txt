@@ -6,3 +6,4 @@ pillow
 fastapi
 pytubefix
 easyocr
+qwen-vl-utils
