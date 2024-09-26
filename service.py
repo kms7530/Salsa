@@ -256,14 +256,22 @@ class OCR:
     traffic={"timeout": 30},
 )
 class Bako:
-    service_vlm = bentoml.depends(VisionLanguage)
-    service_dino = bentoml.depends(DINO)
-    service_ocr = bentoml.depends(OCR)
-
     def __init__(self) -> None:
         """서비스 제공중인 모델을 모두 routing하는 Bako 객체의 초기화 함수."""
+        self.service_vlm = None
+        self.service_dino = None
+        self.service_ocr = None
+        self.initialize_services()
 
-        pass
+    def initialize_services(self):
+        if "VisionLanguage" in Config.MODEL_SELECTIVE_OPTION:
+            self.service_vlm = VisionLanguage()
+        
+        if "DINO" in Config.MODEL_SELECTIVE_OPTION:
+            self.service_dino = DINO()
+        
+        if "OCR" in Config.MODEL_SELECTIVE_OPTION:
+            self.service_ocr = OCR()
 
     @bentoml.api(route="/video")
     async def infer_with_video(self, prompt: str, video_path: Path) -> str:
@@ -292,6 +300,7 @@ class Bako:
             str: 추론 결과.
         """
 
+        print(prompt)
         result = await self.service_vlm.to_async.infer_with_image(prompt, image)
         return result
 
