@@ -41,11 +41,10 @@ class VisionLanguage:
         elif "Qwen2-VL" in self.model_path:
             self.model = Qwen2VLForConditionalGeneration.from_pretrained(
                 self.model_path,
-                torch_dtype="auto",
                 device_map="auto",
                 # Flash attention 2 관련 설정.
                 torch_dtype=(
-                    torch.bfloat16 if Config.PREF_VLM["use_flash_attn"] else None
+                    torch.bfloat16 if Config.PREF_VLM["use_flash_attn"] else "auto"
                 ),
                 attn_implementation=(
                     "flash_attention_2" if Config.PREF_VLM["use_flash_attn"] else ""
@@ -65,9 +64,9 @@ class VisionLanguage:
         result = None
 
         if "LongVA" in self.model_path:
-            result = dict_fn_callback["LongVA"](kwargs)
+            result = dict_fn_callback["LongVA"](**kwargs)
         elif "Qwen2-VL" in self.model_path:
-            result = dict_fn_callback["Qwen2-VL"](kwargs)
+            result = dict_fn_callback["Qwen2-VL"](**kwargs)
         else:
             raise Exception(f"지원되지 않는 모델: {self.model_path}")
 
