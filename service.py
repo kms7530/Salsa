@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import hashlib
 import os
+import shutil
 from pathlib import Path
 from typing import Callable, Dict, List
 
@@ -192,9 +193,14 @@ class VisionLanguage:
 
         # Modality에 맞는 데이터 입력.
         if modalities == "image":
-            messages["content"]["image"] = image
+            messages[0]["content"][0]["image"] = image
         elif modalities == "video":
-            messages["content"]["video"] = video_path
+            # 파일 확장자 추가.
+            shutil.move(str(video_path), str(video_path) + ".mp4")
+
+            messages[0]["content"][0]["video"] = str(video_path) + ".mp4"
+            messages[0]["content"][0]["fps"] = 1.0
+            messages[0]["content"][0]["max_pixels"] = 360 * 420
 
         # Prompt 양식에 맞도록 input 생성.
         text = self.processor.apply_chat_template(
@@ -212,7 +218,8 @@ class VisionLanguage:
             )
         elif modalities == "video":
             inputs = self.processor(
-                text=text,
+                text=[text],
+                images=image_inputs,
                 videos=video_inputs,
                 padding=True,
                 return_tensors="pt",
@@ -231,7 +238,7 @@ class VisionLanguage:
             clean_up_tokenization_spaces=False,
         )
 
-        return output
+        return output[0]
 
     @bentoml.api(route="/video")
     def infer_with_video(self, prompt: str, video_path: Path) -> str:
