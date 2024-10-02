@@ -7,3 +7,5 @@ fastapi
 pytubefix
 easyocr
 qwen-vl-utils
+optimizer
+auto-gptq
