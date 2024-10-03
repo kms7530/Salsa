@@ -1,6 +1,6 @@
 import psutil
 from typing import Dict
-from config import Config
+from config_template import Config
 import subprocess
 import pynvml
 
