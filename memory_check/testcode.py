@@ -1,8 +1,13 @@
+import sys
+import os
+
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
 import unittest
 from unittest.mock import patch, MagicMock
 import torch
 from config_template import Config
-from memory_check.utils import (
+from utils import (
     check_system_memory,
     print_memory_check_result,
     get_available_memory,
