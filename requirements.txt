@@ -7,5 +7,5 @@ fastapi
 pytubefix
 easyocr
 qwen-vl-utils
-optimizer
+optimum[habana]
 auto-gptq

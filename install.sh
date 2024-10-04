@@ -38,8 +38,8 @@ echo ""
 echo ">>> Install dependencies for Vigilant ..."
 echo ""
 cd ..
-pip install -U transformers
 pip install -r requirements.txt
+pip install -U transformers
 
 echo ""
 echo ">>> Copy config files ..."
