@@ -17,7 +17,7 @@ from longva.model.builder import load_pretrained_model
 from PIL.Image import Image as PILImage
 
 from config import Config
-from utils import check_system_memory, print_memory_check_result
+from memory_check.utils import check_system_memory, print_memory_check_result
 
 
 @bentoml.service(
