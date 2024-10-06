@@ -1,5 +1,8 @@
 from __future__ import annotations
-
+import sys
+import os
+import subprocess
+import tempfile
 import hashlib
 import os
 from pathlib import Path
@@ -18,6 +21,57 @@ from PIL.Image import Image as PILImage
 
 from config import Config
 from memory_check.utils import check_system_memory, print_memory_check_result
+
+
+def convert_video_to_mpeg4(input_path, output_path):
+    """
+    비디오를 MPEG-4 형식으로 변환하도록 cmd 명령어 수행.
+    """
+    cmd = [
+        "ffmpeg",
+        "-i",
+        str(input_path),
+        "-c:v",
+        "mpeg4",
+        "-c:a",
+        "copy",
+        str(output_path),
+    ]
+    subprocess.run(cmd, check=True)
+
+
+def safe_video_processing(func):
+    """
+    비디오 처리 함수 데코레이터
+    오류 발생 시 MPEG-4로 변환 후 재시도합니다.
+    """
+
+    def wrapper(*args, **kwargs):
+        try:
+            return func(*args, **kwargs)
+        except Exception as e:
+            print(f"원본 비디오 처리 중 오류 발생: {e}")
+            print("MPEG-4로 변환 후 재시도합니다.")
+
+            # 임시 파일 생성
+            with tempfile.NamedTemporaryFile(suffix=".mp4", delete=False) as temp_file:
+                temp_path = Path(temp_file.name)
+
+            try:
+                # 비디오 변환
+                convert_video_to_mpeg4(args[1], temp_path)
+
+                # 변환된 비디오로 함수 재실행
+                new_args = list(args)
+                new_args[1] = temp_path
+                result = func(*new_args, **kwargs)
+
+                return result
+            finally:
+                # 임시 파일 삭제
+                os.unlink(temp_path)
+
+    return wrapper
 
 
 @bentoml.service(
@@ -118,27 +172,45 @@ class VisionLanguage:
             str: 추론 후 결과.
         """
 
-        # 프롬프트 생성 및 토큰으로 변환.
-        input_ids = self.__generate_prompt(prompt)
+        try:
+            # 프롬프트 생성 및 토큰으로 변환.
+            input_ids = self.__generate_prompt(prompt)
 
-        # 비디오 파일 불러오기.
-        vr = VideoReader(str(video_path), ctx=cpu(0))
-        total_frame_num = len(vr)
-        uniform_sampled_frames = np.linspace(
-            0, total_frame_num - 1, self.max_frames_num, dtype=int
-        )
+            # 비디오 파일 불러오기.
+            vr = VideoReader(str(video_path), ctx=cpu(0))
+            total_frame_num = len(vr)
+            uniform_sampled_frames = np.linspace(
+                0, total_frame_num - 1, self.max_frames_num, dtype=int
+            )
 
-        frame_idx = uniform_sampled_frames.tolist()
-        frames = vr.get_batch(frame_idx).asnumpy()
+            frame_idx = uniform_sampled_frames.tolist()
+            frames = vr.get_batch(frame_idx).asnumpy()
 
-        video_tensor = self.image_processor.preprocess(frames, return_tensors="pt")[
-            "pixel_values"
-        ].to(self.model.device, dtype=torch.float16)
+            video_tensor = self.image_processor.preprocess(frames, return_tensors="pt")[
+                "pixel_values"
+            ].to(self.model.device, dtype=torch.float16)
 
-        # 추론.
-        outputs = self.__run_inference(input_ids, video_tensor, "video")
+            # 추론.
+            outputs = self.__run_inference(input_ids, video_tensor, "video")
 
-        return outputs
+            return outputs
+        except Exception as e:
+            print(f"원본 비디오 처리 중 오류 발생: {e}")
+            print("MPEG-4로 변환 후 재시도합니다.")
+
+            # 임시 파일 생성
+            with tempfile.NamedTemporaryFile(suffix=".mp4", delete=False) as temp_file:
+                temp_path = Path(temp_file.name)
+
+            try:
+                # 비디오 변환
+                convert_video_to_mpeg4(video_path, temp_path)
+
+                # 변환된 비디오로 함수 재실행
+                return self.infer_with_video(prompt, temp_path)
+            finally:
+                # 임시 파일 삭제
+                os.unlink(temp_path)
 
     @bentoml.api(route="/image")
     def infer_with_image(self, prompt: str, image: PILImage) -> str:
@@ -276,6 +348,7 @@ class Bako:
         else:
             print("메모리 체킹 완료")
 
+    @safe_video_processing
     @bentoml.api(route="/video")
     async def infer_with_video(self, prompt: str, video_path: Path) -> str:
         """비디오 파일을 이용한 LongVA 추론 함수. - Bako
@@ -287,9 +360,14 @@ class Bako:
         Returns:
             str: 추론 후 결과.
         """
-
-        result = await self.service_vlm.to_async.infer_with_video(prompt, video_path)
-        return result
+        try:
+            result = await self.service_vlm.to_async.infer_with_video(
+                prompt, video_path
+            )
+            return result
+        except Exception as e:
+            print(f"비디오 처리 중 오류 발생: {e}")
+            return f"비디오 처리 중 오류 발생: {str(e)}"
 
     @bentoml.api(route="/image")
     async def infer_with_image(self, prompt: str, image: PILImage) -> str:
