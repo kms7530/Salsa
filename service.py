@@ -4,9 +4,10 @@ import hashlib
 import os
 import shutil
 from pathlib import Path
-from typing import Callable, Dict, List
+from typing import Callable, Dict, List, Annotated
 
 import bentoml
+from bentoml.validators import ContentType
 import easyocr
 import numpy as np
 import torch
@@ -241,7 +242,9 @@ class VisionLanguage:
         return output[0]
 
     @bentoml.api(route="/video")
-    def infer_with_video(self, prompt: str, video_path: Path) -> str:
+    def infer_with_video(
+        self, prompt: str, video_path: Annotated[Path, ContentType("video/mp4")]
+    ) -> str:
         """비디오 파일을 이용한 VLM 추론 함수.
 
         Args:
