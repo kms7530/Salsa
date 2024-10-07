@@ -4,13 +4,13 @@ import hashlib
 import os
 import shutil
 from pathlib import Path
-from typing import Callable, Dict, List, Annotated
+from typing import Annotated, Callable, Dict, List
 
 import bentoml
-from bentoml.validators import ContentType
 import easyocr
 import numpy as np
 import torch
+from bentoml.validators import ContentType
 from decord import VideoReader, cpu
 from groundingdino.util.inference import load_image, load_model, predict
 from longva.constants import IMAGE_TOKEN_INDEX
