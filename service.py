@@ -1,8 +1,5 @@
 from __future__ import annotations
-import sys
-import os
-import subprocess
-import tempfile
+
 import hashlib
 import os
 import shutil
@@ -24,58 +21,6 @@ from qwen_vl_utils import process_vision_info
 from transformers import AutoProcessor, Qwen2VLForConditionalGeneration
 
 from config import Config
-from memory_check.utils import check_system_memory, print_memory_check_result
-
-
-def convert_video_to_mpeg4(input_path, output_path):
-    """
-    비디오를 MPEG-4 형식으로 변환하도록 cmd 명령어 수행.
-    """
-    cmd = [
-        "ffmpeg",
-        "-i",
-        str(input_path),
-        "-c:v",
-        "mpeg4",
-        "-c:a",
-        "copy",
-        str(output_path),
-    ]
-    subprocess.run(cmd, check=True)
-
-
-def safe_video_processing(func):
-    """
-    비디오 처리 함수 데코레이터
-    오류 발생 시 MPEG-4로 변환 후 재시도합니다.
-    """
-
-    def wrapper(*args, **kwargs):
-        try:
-            return func(*args, **kwargs)
-        except Exception as e:
-            print(f"원본 비디오 처리 중 오류 발생: {e}")
-            print("MPEG-4로 변환 후 재시도합니다.")
-
-            # 임시 파일 생성
-            with tempfile.NamedTemporaryFile(suffix=".mp4", delete=False) as temp_file:
-                temp_path = Path(temp_file.name)
-
-            try:
-                # 비디오 변환
-                convert_video_to_mpeg4(args[1], temp_path)
-
-                # 변환된 비디오로 함수 재실행
-                new_args = list(args)
-                new_args[1] = temp_path
-                result = func(*new_args, **kwargs)
-
-                return result
-            finally:
-                # 임시 파일 삭제
-                os.unlink(temp_path)
-
-    return wrapper
 
 
 @bentoml.service(
@@ -309,36 +254,19 @@ class VisionLanguage:
         Returns:
             str: 추론 후 결과.
         """
-        try:
-            # 설정된 모델에 따른 결과 추론.
-            outputs = self.__callback_by_model(
-                {
-                    "LongVA": self.__run_inference_longva,
-                    "Qwen2-VL": self.__run_inference_qwen2vl,
-                },
-                prompt=prompt,
-                modalities="video",
-                video_path=video_path,
-            )
 
-            return outputs
-        except Exception as e:
-            print(f"원본 비디오 처리 중 오류 발생: {e}")
-            print("MPEG-4로 변환 후 재시도합니다.")
+        # 설정된 모델에 따른 결과 추론.
+        outputs = self.__callback_by_model(
+            {
+                "LongVA": self.__run_inference_longva,
+                "Qwen2-VL": self.__run_inference_qwen2vl,
+            },
+            prompt=prompt,
+            modalities="video",
+            video_path=video_path,
+        )
 
-            # 임시 파일 생성
-            with tempfile.NamedTemporaryFile(suffix=".mp4", delete=False) as temp_file:
-                temp_path = Path(temp_file.name)
-
-            try:
-                # 비디오 변환
-                convert_video_to_mpeg4(video_path, temp_path)
-
-                # 변환된 비디오로 함수 재실행
-                return self.infer_with_video(prompt, temp_path)
-            finally:
-                # 임시 파일 삭제
-                os.unlink(temp_path)
+        return outputs
 
     @bentoml.api(route="/image")
     def infer_with_image(self, prompt: str, image: PILImage) -> str:
@@ -394,10 +322,6 @@ class DINO:
         # 이미지 객체를 문자열로 변환하여 해시 생성
         image_hash = hashlib.md5(image.tobytes()).hexdigest()
 
-        # .cache 디렉토리 생성
-        cache_dir = Path(Config.PATH_CACHE)
-        cache_dir.mkdir(parents=True, exist_ok=True)
-
         # 해시의 앞 5글자 추출
         hash_prefix = image_hash[:5]
         path_image = os.path.join(Config.PATH_CACHE, f"{hash_prefix}.jpg")
@@ -427,8 +351,8 @@ class DINO:
 class OCR:
     def __init__(self) -> None:
         """Ground DINO의 serving을 위한 객체 생성 함수."""
-        config = Config()
-        self.reader = easyocr.Reader(config.PREF_OCR["lang"])
+
+        self.reader = easyocr.Reader(Config.PREF_OCR["lang"])
 
     @bentoml.api(route="/ocr")
     def infer_img_to_text(self, image: PILImage) -> List:
@@ -467,17 +391,10 @@ class Bako:
     service_ocr = bentoml.depends(OCR)
 
     def __init__(self) -> None:
-        memory_check_result = check_system_memory()
-        print_memory_check_result(memory_check_result)
+        """서비스 제공중인 모델을 모두 routing하는 Bako 객체의 초기화 함수."""
 
-        if not all(memory_check_result.values()):
-            raise MemoryError(
-                "System does not meet the memory requirements. Please check the output above."
-            )
-        else:
-            print("메모리 체킹 완료")
+        pass
 
-    @safe_video_processing
     @bentoml.api(route="/video")
     async def infer_with_video(self, prompt: str, video_path: Path) -> str:
         """비디오 파일을 이용한 LongVA 추론 함수. - Bako
@@ -489,14 +406,9 @@ class Bako:
         Returns:
             str: 추론 후 결과.
         """
-        try:
-            result = await self.service_vlm.to_async.infer_with_video(
-                prompt, video_path
-            )
-            return result
-        except Exception as e:
-            print(f"비디오 처리 중 오류 발생: {e}")
-            return f"비디오 처리 중 오류 발생: {str(e)}"
+
+        result = await self.service_vlm.to_async.infer_with_video(prompt, video_path)
+        return result
 
     @bentoml.api(route="/image")
     async def infer_with_image(self, prompt: str, image: PILImage) -> str:
