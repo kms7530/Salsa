@@ -24,6 +24,36 @@ class Config:
     )
     PATH_CACHE: str = ".cache"
 
+    # VLM 설정.
+    PREF_VLM = {
+        # 사용 가능 모델:
+        #
+        # Qwen2-VL 계열 모델.
+        #   - Qwen/Qwen2-VL-2B-Instruct-GPTQ-Int8
+        #   - Qwen/Qwen2-VL-7B-Instruct-GPTQ-Int8
+        #   - and so on...
+        #
+        # LongVA 계열 모델.
+        #   - lmms-lab/LongVA-7B-DPO
+        #   - lmms-lab/LongVA-7B
+        # !!! LongVA 관련 설정 !!!
+        #   - LongVA 사용시 다음의 인자에 대해 정의 필요.
+        #   - 주석 해제 후 사용.
+        # "gen_kwargs": {
+        #     "do_sample": True,
+        #     "temperature": 0.5,
+        #     "top_p": None,
+        #     "num_beams": 1,
+        #     "use_cache": True,
+        #     "max_new_tokens": 1024,
+        # }
+        # "max_frames_num": 16
+        "model_name": "Qwen/Qwen2-VL-2B-Instruct-GPTQ-Int8",
+        # Flash Attention 2 사용 설정.
+        # Qwen2-VL에서만 사용 가능.
+        "use_flash_attn": True,
+    }
+
     # DINO 설정.
     PREF_DINO = {
         "model_name": "IDEA-Research/grounding-dino-tiny",
