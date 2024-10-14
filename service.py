@@ -234,7 +234,7 @@ class VisionLanguage:
         Returns:
             str: 추론한 결과 텍스트.
         """
-        
+
         messages = [
             {
                 "role": "user",
@@ -309,17 +309,17 @@ class VisionLanguage:
         Returns:
             str: 추론 후 결과.
         """
-
-        # 설정된 모델에 따른 결과 추론.
-        outputs = self.__callback_by_model(
-            {
-                "LongVA": self.__run_inference_longva,
-                "Qwen2-VL": self.__run_inference_qwen2vl,
-            },
-            prompt=prompt,
-            modalities="video",
-            video_path=video_path,
-        )
+        try:
+            # 설정된 모델에 따른 결과 추론.
+            outputs = self.__callback_by_model(
+                {
+                    "LongVA": self.__run_inference_longva,
+                    "Qwen2-VL": self.__run_inference_qwen2vl,
+                },
+                prompt=prompt,
+                modalities="video",
+                video_path=video_path,
+            )
 
             return outputs
         except Exception as e:
