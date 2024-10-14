@@ -41,5 +41,11 @@ cd ..
 pip install -r requirements.txt
 
 echo ""
+echo ">>> Copy config files ..."
+echo ""
+cp config/config_template.py ./config.py
+cp config/bentofile.yaml ./bentofile.yaml
+
+echo ""
 echo ">>> Done!"
 echo ""
