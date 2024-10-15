@@ -1,0 +1,35 @@
+from __future__ import annotations
+from pathlib import Path
+from typing import Annotated, Callable, Dict, List
+
+import bentoml
+
+from bentoml.validators import ContentType
+from PIL.Image import Image as PILImage
+{{ "" }}
+{%- for model in models %}
+from models.{{ model["filename"] }} import {{model["class_name"]}}
+{%- endfor %}
+
+@bentoml.service(
+resources={"cpu": "4"},
+traffic={"timeout": 30},
+)
+class BakoService:
+{%- for model in models %}
+    service_{{model["class_name"].lower()}} = bentoml.depends({{model["class_name"]}})
+{%- endfor %}
+{{ "" }}
+{%- for method in methods %}
+{%- for dec_name, dec_val in method['decorator_args'].items() %}
+    @bentoml.api({{ dec_name }}={{ dec_val }})
+{%- endfor %}
+    async def {{ method['name'] }}(
+        self,
+    {%- for param in method['params'][1:] %}
+        {{ param[0] }}: {{ param[1] }}{% if not loop.last %}, {% endif %}
+    {%- endfor %}
+    ) -> {{ method['return_type'] }}:
+        return await self.service_{{ method['cls_name'].lower() }}.to_async.{{ method['name'] }}({{ method['params'][1:] | map(attribute='0') | join(', ') }})
+    {{ "" }}
+{%- endfor %}
