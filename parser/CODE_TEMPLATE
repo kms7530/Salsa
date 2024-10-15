@@ -6,6 +6,7 @@ import bentoml
 
 from bentoml.validators import ContentType
 from PIL.Image import Image as PILImage
+from memory_check.utils import check_system_memory, print_memory_check_result
 {{ "" }}
 {%- for model in models %}
 from models.{{ model["filename"] }} import {{model["class_name"]}}
@@ -20,6 +21,16 @@ class BakoService:
     service_{{model["class_name"].lower()}} = bentoml.depends({{model["class_name"]}})
 {%- endfor %}
 {{ "" }}
+    def __init__(self) -> None:
+        memory_check_result = check_system_memory()
+        print_memory_check_result(memory_check_result)
+
+        if not all(memory_check_result.values()):
+            raise MemoryError(
+                "System does not meet the memory requirements. Please check the output above."
+            )
+        else:
+            print("메모리 체킹 완료")
 {%- for method in methods %}
 {%- for dec_name, dec_val in method['decorator_args'].items() %}
     @bentoml.api({{ dec_name }}={{ dec_val }})
