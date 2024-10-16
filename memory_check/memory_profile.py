@@ -73,7 +73,7 @@ def profile_services():
         test_image = Image.new("RGB", (100, 100), color=(73, 109, 137))
 
     test_video_path = Path(
-        "/Users/jeonjisu/Desktop/university/project/Salsa/dc_demo.mp4"
+        "/path/to/your/video.mp4"
     )  # 실제 비디오 파일 경로로 변경 필요
     test_prompt = "영상은 어떤 내용을 담고있죠?"
     test_prompt1 = "사진은 어떠한 모습입니까?"
