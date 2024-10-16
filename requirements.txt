@@ -9,3 +9,4 @@ easyocr
 qwen-vl-utils
 optimum[habana]
 auto-gptq
+pynvml
