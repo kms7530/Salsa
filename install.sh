@@ -47,6 +47,13 @@ echo ""
 cp config/config_template.py ./config.py
 cp config/bentofile.yaml ./bentofile.yaml
 
+
+echo ""
+echo ">>> Install FFmpeg ..."
+echo ""
+sudo apt update
+sudo apt install ffmpeg -y
+
 echo ""
 echo ">>> Done!"
 echo ""
