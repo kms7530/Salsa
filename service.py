@@ -7,7 +7,7 @@ import hashlib
 import os
 import shutil
 from pathlib import Path
-from typing import Annotated, Callable, Dict, List
+from typing import Annotated, Callable, Dict, List, Any
 
 import bentoml
 import easyocr
@@ -27,9 +27,16 @@ from config import Config
 from memory_check.utils import check_system_memory, print_memory_check_result
 
 
-def convert_video_to_mpeg4(input_path, output_path):
+def convert_video_to_mpeg4(input_path: Path, output_path: Path) -> None:
     """
     비디오를 MPEG-4 형식으로 변환하도록 cmd 명령어 수행.
+
+    Args:
+        input_path (Path): 입력 비디오 파일의 경로
+        output_path (Path): 출력 MPEG-4 비디오 파일의 경로
+
+    Returns:
+        None
     """
     cmd = [
         "ffmpeg",
@@ -44,10 +51,16 @@ def convert_video_to_mpeg4(input_path, output_path):
     subprocess.run(cmd, check=True)
 
 
-def safe_video_processing(func):
+def safe_video_processing(func: Callable[..., Any]) -> Callable[..., Any]:
     """
     비디오 처리 함수 데코레이터
     오류 발생 시 MPEG-4로 변환 후 재시도합니다.
+
+    Args:
+        func (Callable[..., Any]): 데코레이트할 비디오 처리 함수
+
+    Returns:
+        Callable[..., Any]: 래핑된 함수
     """
 
     def wrapper(*args, **kwargs):
@@ -427,8 +440,7 @@ class DINO:
 class OCR:
     def __init__(self) -> None:
         """Ground DINO의 serving을 위한 객체 생성 함수."""
-        config = Config()
-        self.reader = easyocr.Reader(config.PREF_OCR["lang"])
+        self.reader = easyocr.Reader(Config.PREF_OCR["lang"])
 
     @bentoml.api(route="/ocr")
     def infer_img_to_text(self, image: PILImage) -> List:

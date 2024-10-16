@@ -2,7 +2,6 @@ import os
 import sys
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-import psutil
 from PIL import Image
 import torch
 from pathlib import Path
@@ -60,7 +59,12 @@ def profile_services():
     각 서비스의 메모리 사용량을 프로파일링합니다.
     """
     # 테스트용 데이터 준비
-    test_image_path = Path("/workspace/Salsa/assistant_logo.png")
+    test_image_path = Path(__file__).parent.parent / "docs" / "IMG_1206.png"
+
+    # 파일이 실제로 존재하는지 확인
+    if not test_image_path.exists():
+        raise FileNotFoundError(f"테스트 이미지를 찾을 수 없습니다: {test_image_path}")
+    # 실제 이미지 파일 경로로 변경 필요
     try:
         test_image = Image.open(test_image_path)
     except FileNotFoundError:
@@ -69,7 +73,7 @@ def profile_services():
         test_image = Image.new("RGB", (100, 100), color=(73, 109, 137))
 
     test_video_path = Path(
-        "/workspace/Salsa/newsample_resized.mp4"
+        "/Users/jeonjisu/Desktop/university/project/Salsa/dc_demo.mp4"
     )  # 실제 비디오 파일 경로로 변경 필요
     test_prompt = "영상은 어떤 내용을 담고있죠?"
     test_prompt1 = "사진은 어떠한 모습입니까?"
