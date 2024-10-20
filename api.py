@@ -21,7 +21,7 @@ def health_check():
     return "OK"
 
 
-@app.get("/keywords")
+@app.get("/description")
 def health_check(code: Union[str, None]) -> Dict:
     """주어진 영상 코드를 통해 영상을 받아 키워드를 도출하는 API 함수.
 
