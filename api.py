@@ -3,7 +3,7 @@ from typing import Dict, Union
 from fastapi import FastAPI
 
 from config import Config
-from preprocess.video import download_video
+from pipelines.video_section import get_video_description
 
 # FastAPI 객체 생성.
 app = FastAPI()
@@ -33,9 +33,9 @@ def health_check(code: Union[str, None]) -> Dict:
         Dict: 영상의 키워드 결과값.
     """
 
-    # Youtube 영상 받아오기.
-    download_video(code, Config.PATH_CACHE)
-
     # TODO: 기타 pipeline 작성.
 
-    return "OK"
+    return {
+        "status": "OK",
+        "result": get_video_description(code, Config.PATH_CACHE, "", 0, 60),
+    }
