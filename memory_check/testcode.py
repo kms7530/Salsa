@@ -59,9 +59,7 @@ class TestMemoryUtils(unittest.TestCase):
 
         available_memory = get_available_memory()
 
-        self.assertAlmostEqual(
-            available_memory, 20.0, places=1
-        )  # 제대로 mock이 되었는지 확인
+        self.assertAlmostEqual(available_memory, 20.0, places=1)  # 제대로 mock이 되었는지 확인
 
     # 메모리 요구사항이 최소 요구사항보다 작은지 테스트
     def test_memory_requirements(self):

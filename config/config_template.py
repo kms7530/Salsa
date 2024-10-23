@@ -19,9 +19,7 @@ class Config:
         "infer_img_to_text": "/ocr",
     }
 
-    PATH_BENTOML_SERVER_BASE_URL: str = (
-        f"{PREF_BENTOML_SERVER['protocol']}{PREF_BENTOML_SERVER['path_root']}:{PREF_BENTOML_SERVER['port']}"
-    )
+    PATH_BENTOML_SERVER_BASE_URL: str = f"{PREF_BENTOML_SERVER['protocol']}{PREF_BENTOML_SERVER['path_root']}:{PREF_BENTOML_SERVER['port']}"
     PATH_CACHE: str = ".cache"
 
     # VLM 설정.
