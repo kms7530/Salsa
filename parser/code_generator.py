@@ -38,7 +38,6 @@ def main(args):
     for filename in model_service_py:
         parser = CodeParser(filename)
         for cls in parser.bentoml_classes():
-
             if cls["class_name"] not in Config.MODEL_SELECT_LOAD:
                 continue
 
