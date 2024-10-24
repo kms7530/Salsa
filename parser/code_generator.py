@@ -5,7 +5,7 @@ import argparse
 
 
 class ServiceCodeGenerator:
-    def __init__(self, template_path: str):
+    def __init__(self, template_path: str) -> None:
         """지정된 형식의 탬플릿 코드를 바탕으로 BentoML 서비스코드를 생성합니다.
 
         Args:
@@ -35,7 +35,7 @@ class ServiceCodeGenerator:
 
         return self.template.render(models=models, methods=methods)
 
-    def save_code(self, code: str, output_file: str):
+    def save_code(self, code: str, output_file: str) -> None:
         """코드와 파일명을 전달받아 코드를 저장합니다.
 
         Args:
@@ -46,7 +46,12 @@ class ServiceCodeGenerator:
             f.write(code)
 
 
-def main(args):
+def main(args) -> None:
+    """모델 디렉토리에서 BentoML 서비스 클래스를 파싱하고, 선택된 클래스에 대해 서비스 코드를 생성하여 저장합니다.
+
+    Args:
+        args (argparse.Namespace): 서비스 이름을 포함한 명령어 인수.
+    """
     from glob import glob
     from config import Config
 
