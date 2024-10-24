@@ -6,7 +6,9 @@ from PIL import Image
 import torch
 from pathlib import Path
 import time
-from service import VisionLanguage, DINO, OCR, Bako
+from models.vision_language import VisionLanguage
+from models.dino import DINO
+from models.ocr import OCR
 
 
 def measure_memory_usage_and_get_result(func, *args, **kwargs):

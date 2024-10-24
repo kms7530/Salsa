@@ -80,3 +80,9 @@ class Config:
         "infer_ground_box": 0.64,  # DINO 추론에 필요한 메모리 (GB)
         "infer_img_to_text": 0.01,  # OCR에 필요한 메모리 (GB)
     }
+
+    MODEL_SELECT_LOAD = [
+        "DINO",
+        "OCR",
+        "VisionLanguage",
+    ]  # 로드할 모델의 클래스 이름을 지정함.
