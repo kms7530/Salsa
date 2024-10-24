@@ -6,10 +6,23 @@ import argparse
 
 class ServiceCodeGenerator:
     def __init__(self, template_path: str):
+        """지정된 형식의 탬플릿 코드를 바탕으로 BentoML 서비스코드를 생성합니다.
+
+        Args:
+            template_path (str): 탬플릿코드 경로
+        """
         with open(template_path) as f:
             self.template = Template(f.read())
 
     def generate(self, classes: list) -> str:
+        """CodeParser에서 파싱한 클래스로부터 서비스 코드를 생성합니다.
+
+        Args:
+            classes (list): CodeParser에서 전달받은 클래스 리스트
+
+        Returns:
+            str: BentoML 서비스 코드
+        """
         methods = [
             {"cls_name": cls["class_name"], **method}
             for cls in classes
@@ -20,10 +33,15 @@ class ServiceCodeGenerator:
             for cls in classes
         ]
 
-        print(methods)
         return self.template.render(models=models, methods=methods)
 
     def save_code(self, code: str, output_file: str):
+        """코드와 파일명을 전달받아 코드를 저장합니다.
+
+        Args:
+            code (str): BentoML 서비스 코드
+            output_file (str): 저장할 파일명
+        """
         with open(output_file, "w") as f:
             f.write(code)
 
@@ -38,7 +56,7 @@ def main(args):
     for filename in model_service_py:
         parser = CodeParser(filename)
         for cls in parser.bentoml_classes():
-            if cls["class_name"] not in Config.MODEL_SELECT_LOAD:
+            if cls["class_name"] not in Config.MODEL_SELECT_LOAD: # Config에서 선택한 모델만 로드함
                 continue
 
             target_classes.append(cls)
