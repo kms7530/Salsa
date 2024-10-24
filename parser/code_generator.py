@@ -46,7 +46,7 @@ class ServiceCodeGenerator:
             f.write(code)
 
 
-def main(args) -> None:
+def main(args: argparse.Namespace) -> None:
     """모델 디렉토리에서 BentoML 서비스 클래스를 파싱하고, 선택된 클래스에 대해 서비스 코드를 생성하여 저장합니다.
 
     Args:

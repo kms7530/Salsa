@@ -23,18 +23,18 @@ class CodeParser:
         with open(self.filename) as f:
             return ast.parse(f.read())
 
-    def __parse_decorator_args(self, decorator) -> Dict:
+    def __parse_decorator_args(self, decorator: ast.expr) -> Dict:
         """코드에서 `decorator`의 인자를 파싱합니다.
 
         Args:
-            decorator (ast.AST): 데코레이터 노드.
+            decorator (ast.expr): 데코레이터 노드.
 
         Returns:
             Dict: 데코레이터의 인수 딕셔너리.
         """
         return {kw.arg: ast.unparse(kw.value) for kw in decorator.keywords}
 
-    def __parse_function_signiture(self, func_node) -> Dict:
+    def __parse_function_signiture(self, func_node: ast.FunctionDef) -> Dict:
         """함수 파라미터와 리턴 타입을 파싱합니다.
 
         Args:
@@ -50,11 +50,11 @@ class CodeParser:
         return_type = ast.unparse(func_node.returns) if func_node.returns else "None"
         return {"params": params, "return_type": return_type}
 
-    def __extract_decorator(self, decorator) -> Dict:
+    def __extract_decorator(self, decorator: ast.expr) -> Dict:
         """BentoML API 데코레이터 패턴과 일치하는지 확인한 후, 관련 정보를 추출합니다.
 
         Args:
-            decorator (ast.AST): 데코레이터 노드.
+            decorator (ast.expr): 데코레이터 노드.
 
         Returns:
             Dict: `@api` 데코레이터와 일치할 경우, 데코레이터의 인수를 포함한 딕셔너리를 반환.
@@ -70,20 +70,20 @@ class CodeParser:
             else {}
         )
 
-    def __parse_methods(self, class_node) -> List[Dict]:
-        """_summary_
+    def __parse_methods(self, class_node: ast.ClassDef) -> List[Dict]:
+        """주어진 클래스 노드에서 메서드를 파싱하여 각 메서드의 정보(이름, 파라미터, 리턴 타입, 데코레이터)를 추출합니다.
 
         Args:
-            class_node (_type_): _description_
+            class_node (ast.ClassDef): 클래스 정의 노드.
 
         Returns:
-            List[Dict]: _description_
+            List[Dict]: 각 메서드의 이름, 파라미터, 리턴 타입, 데코레이터 정보를 포함한 딕셔너리 리스트.
         """
         methods = []
         for body_item in class_node.body:
             if isinstance(body_item, ast.FunctionDef):
                 method_info = self.__parse_function_signiture(body_item)
-                method_info["name"] = body_item.name
+                method_info["name"] = body_item.name     
 
                 for decorator in body_item.decorator_list:
                     if decorator_info := self.__extract_decorator(decorator):
@@ -92,11 +92,11 @@ class CodeParser:
 
         return methods
 
-    def __is_bentoml_service(self, class_node) -> bool:
+    def __is_bentoml_service(self, class_node: ast.expr) -> bool:
         """주어진 클래스 노드가 BentoML 서비스 클래스인지 확인합니다.
 
         Args:
-            class_node (ast.ClassDef): 추상 구문 트리(AST)의 클래스 노드 객체.
+            class_node (ast.expr): 추상 구문 트리(AST)의 클래스 노드 객체.
 
         Returns:
             bool: 클래스가 BentoML 서비스 클래스인지 여부.
