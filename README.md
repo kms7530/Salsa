@@ -27,8 +27,15 @@
 │   └── vision_lang.py  		-> VLM 추론용(Image, Video). 
 ├── install.sh          		-> 의존성 라이브러리 설치를 위한 shell script. 
 ├── main.py             		-> 실행 파일. 
+├── models                  -> BentoML 모델 서비스 코드.
+│   ├── your_bentoml_model.py
+│   ...
 ├── pipelines           		-> 각 파이프라인 부분. 
 │   └── video_section.py
+├── parser
+│   ├── code_generator.py   -> Bako 코드 생성기
+│   ├── code_parser.py      -> BentoML 모델 서비스 코드 파싱
+│   └── CODE_TEMPLATE       -> Bako 코드 템플릿
 ├── preprocess          		-> 전처리 관련 라이브러리. 
 │   ├── image.py        		-> 이미지 전처리. 
 │   ├── prompt.py       		-> 프롬프트 전처리. 
@@ -66,9 +73,12 @@ vim bentoml
 - 다음의 명령어를 이용하여 프로젝트를 실행합니다. 
 - 최초 모델 서버 구동 시 <b>모델 다운로드로 인해 시간이 다소 소요</b>될수 있습니다. 
 ```bash
+cd salsa # 프로젝트 폴더로 진입
+python -m parser.code_generator {service 파일 이름}
+
 # 위의 로그 확인 후 문제가 발생하지 않은 경우,
 # 다음 명령어로 모델 배포. 
-bentoml serve -p PORT_NUMBER
+bentoml serve service:BakoService -p PORT_NUMBER
 
 # 다음의 명령어로 FastAPI 서버 가동. 
 uvicorn api:app
