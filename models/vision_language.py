@@ -20,16 +20,9 @@ from pathlib import Path
 from decord import VideoReader, cpu
 
 
-def convert_video_to_mpeg4(input_path: Path, output_path: Path) -> None:
+def convert_video_to_mpeg4(input_path, output_path):
     """
     비디오를 MPEG-4 형식으로 변환하도록 cmd 명령어 수행.
-
-    Args:
-        input_path (Path): 입력 비디오 파일의 경로
-        output_path (Path): 출력 MPEG-4 비디오 파일의 경로
-
-    Returns:
-        None
     """
     cmd = [
         "ffmpeg",
@@ -44,16 +37,10 @@ def convert_video_to_mpeg4(input_path: Path, output_path: Path) -> None:
     subprocess.run(cmd, check=True)
 
 
-def safe_video_processing(func: Callable[..., Any]) -> Callable[..., Any]:
+def safe_video_processing(func):
     """
     비디오 처리 함수 데코레이터
     오류 발생 시 MPEG-4로 변환 후 재시도합니다.
-
-    Args:
-        func (Callable[..., Any]): 데코레이트할 비디오 처리 함수
-
-    Returns:
-        Callable[..., Any]: 래핑된 함수
     """
 
     def wrapper(*args, **kwargs):
@@ -302,7 +289,6 @@ class VisionLanguage:
 
         return output[0]
 
-    @safe_video_processing
     @bentoml.api(route="/video")
     def infer_with_video(
         self, prompt: str, video_path: Annotated[Path, ContentType("video/mp4")]
@@ -371,181 +357,3 @@ class VisionLanguage:
         )
 
         return outputs
-
-
-@bentoml.service(
-    resources={"cpu": "1"},
-    traffic={"timeout": 10},
-)
-class DINO:
-    def __init__(self) -> None:
-        """Ground DINO의 serving을 위한 객체 생성 함수."""
-
-        self.model = load_model(
-            "GroundingDINO/groundingdino/config/GroundingDINO_SwinT_OGC.py",
-            "GroundingDINO/weights/groundingdino_swint_ogc.pth",
-        )
-
-    @bentoml.api(route="/ground-box")
-    def infer_ground_box(self, prompt: str, image: PILImage) -> Dict:
-        """Ground DINO 추론을 위한 API 함수.
-
-        Args:
-            prompt (str): 추론시 이용될 프롬프트.
-            image (PILImage): 추론할 이미지 객체.
-
-        Returns:
-            Dict: 결과 dict.
-        """
-
-        # 이미지 객체를 문자열로 변환하여 해시 생성
-        image_hash = hashlib.md5(image.tobytes()).hexdigest()
-
-        # .cache 디렉토리 생성
-        cache_dir = Path(Config.PATH_CACHE)
-        cache_dir.mkdir(parents=True, exist_ok=True)
-
-        # 해시의 앞 5글자 추출
-        hash_prefix = image_hash[:5]
-        path_image = os.path.join(Config.PATH_CACHE, f"{hash_prefix}.jpg")
-
-        image = image.convert("RGB").save(path_image)
-
-        BOX_TRESHOLD = 0.35
-        TEXT_TRESHOLD = 0.25
-
-        _, image = load_image(path_image)
-
-        boxes, logits, phrases = predict(
-            model=self.model,
-            image=image,
-            caption=prompt,
-            box_threshold=BOX_TRESHOLD,
-            text_threshold=TEXT_TRESHOLD,
-        )
-
-        return {"boxes": boxes.tolist(), "logits": logits.tolist(), "phrases": phrases}
-
-
-@bentoml.service(
-    resources={"cpu": "1"},
-    traffic={"timeout": 3},
-)
-class OCR:
-    def __init__(self) -> None:
-        """Ground DINO의 serving을 위한 객체 생성 함수."""
-        config = Config()
-        self.reader = easyocr.Reader(config.PREF_OCR["lang"])
-
-    @bentoml.api(route="/ocr")
-    def infer_img_to_text(self, image: PILImage) -> List:
-        """Ground DINO 추론을 위한 API 함수.
-
-        Args:
-            prompt (str): 추론시 이용될 프롬프트.
-            image (PILImage): 추론할 이미지 객체.
-
-        Returns:
-            Dict: 결과 dict.
-        """
-
-        # 이미지 객체를 문자열로 변환하여 해시 생성
-        image_hash = hashlib.md5(image.tobytes()).hexdigest()
-
-        # 해시의 앞 5글자 추출
-        hash_prefix = image_hash[:5]
-        path_image = os.path.join(Config.PATH_CACHE, f"{hash_prefix}.jpg")
-
-        image = image.convert("RGB").save(path_image)
-
-        results = self.reader.readtext(path_image)
-        results = [result[1] for result in results]
-
-        return results
-
-
-@bentoml.service(
-    resources={"cpu": "4"},
-    traffic={"timeout": 30},
-)
-class Bako:
-    service_vlm = bentoml.depends(VisionLanguage)
-    service_dino = bentoml.depends(DINO)
-    service_ocr = bentoml.depends(OCR)
-
-    def __init__(self) -> None:
-        memory_check_result = check_system_memory()
-        print_memory_check_result(memory_check_result)
-
-        if not all(memory_check_result.values()):
-            raise MemoryError(
-                "System does not meet the memory requirements. Please check the output above."
-            )
-        else:
-            print("메모리 체킹 완료")
-
-    @safe_video_processing
-    @bentoml.api(route="/video")
-    async def infer_with_video(self, prompt: str, video_path: Path) -> str:
-        """비디오 파일을 이용한 LongVA 추론 함수. - Bako
-
-        Args:
-            prompt (str): 추론시 이용할 함수.
-            video_path (str): 수론시 이용할 영상 저장 경로.
-
-        Returns:
-            str: 추론 후 결과.
-        """
-        try:
-            result = await self.service_vlm.to_async.infer_with_video(
-                prompt, video_path
-            )
-            return result
-        except Exception as e:
-            print(f"비디오 처리 중 오류 발생: {e}")
-            return f"비디오 처리 중 오류 발생: {str(e)}"
-
-    @bentoml.api(route="/image")
-    async def infer_with_image(self, prompt: str, image: PILImage) -> str:
-        """이미지 파일을 이용한 LongVA 추론 함수. - Bako
-
-        Args:
-            prompt (str): 추론시 이용할 함수.
-            image (Image, optional): 추론시 이용할 PIL 이미지 객체.
-
-        Returns:
-            str: 추론 결과.
-        """
-
-        result = await self.service_vlm.to_async.infer_with_image(prompt, image)
-        return result
-
-    @bentoml.api(route="/ground-box")
-    async def infer_ground_box(self, prompt: str, image: PILImage) -> Dict:
-        """Ground DINO 추론을 위한 API 함수. - Bako
-
-        Args:
-            prompt (str): 추론시 이용될 프롬프트.
-            image (PILImage): 추론할 이미지 객체.
-
-        Returns:
-            Dict: 결과 dict.
-        """
-
-        result = await self.service_dino.to_async.infer_ground_box(prompt, image)
-        return result
-
-    @bentoml.api(route="/ocr")
-    async def infer_img_to_text(self, image: PILImage) -> List:
-        """Ground DINO 추론을 위한 API 함수. - Bako
-
-        Args:
-            prompt (str): 추론시 이용될 프롬프트.
-            image (PILImage): 추론할 이미지 객체.
-
-        Returns:
-            Dict: 결과 dict.
-        """
-
-        result = await self.service_ocr.to_async.infer_img_to_text(image)
-        return result
