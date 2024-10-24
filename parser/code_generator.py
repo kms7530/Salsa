@@ -56,7 +56,9 @@ def main(args):
     for filename in model_service_py:
         parser = CodeParser(filename)
         for cls in parser.bentoml_classes():
-            if cls["class_name"] not in Config.MODEL_SELECT_LOAD: # Config에서 선택한 모델만 로드함
+            if (
+                cls["class_name"] not in Config.MODEL_SELECT_LOAD
+            ):  # Config에서 선택한 모델만 로드함
                 continue
 
             target_classes.append(cls)
