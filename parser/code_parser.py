@@ -57,15 +57,15 @@ class CodeParser:
             decorator (ast.AST): 데코레이터 노드.
 
         Returns:
-            Dict: `@api` 데코레이터와 일치할 경우, 데코레이터의 인수를 포함한 딕셔너리를 반환. 
+            Dict: `@api` 데코레이터와 일치할 경우, 데코레이터의 인수를 포함한 딕셔너리를 반환.
                                       일치하지 않으면 빈 딕셔너리를 반환.
         """
         return (
             {"decorator_args": self.__parse_decorator_args(decorator)}
             if (
                 isinstance(decorator, ast.Call)
-                and isinstance(decorator.func, ast.Attribute) # function 객체인지 체크
-                and decorator.func.attr == "api" # bentoml."api"
+                and isinstance(decorator.func, ast.Attribute)  # function 객체인지 체크
+                and decorator.func.attr == "api"  # bentoml."api"
             )
             else {}
         )
@@ -117,7 +117,7 @@ class CodeParser:
         Returns:
             List[Dict]: 추출된 클래스 정보를 포함한 딕셔너리 리스트.
         """
-        
+
         return [
             {
                 "class_name": node.name,
