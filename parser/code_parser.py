@@ -83,7 +83,7 @@ class CodeParser:
         for body_item in class_node.body:
             if isinstance(body_item, ast.FunctionDef):
                 method_info = self.__parse_function_signiture(body_item)
-                method_info["name"] = body_item.name     
+                method_info["name"] = body_item.name
 
                 for decorator in body_item.decorator_list:
                     if decorator_info := self.__extract_decorator(decorator):
