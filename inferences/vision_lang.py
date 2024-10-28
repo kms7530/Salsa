@@ -54,7 +54,7 @@ def infer_with_image(
 
     # 파일 열기
     with open(path_image, "rb") as file:
-        files = {"file": file}
+        files = {"image": file}
 
         # POST 요청 보내기
         response = requests.post(url, data=data, files=files)
@@ -82,7 +82,7 @@ def infer_with_video(prompt: str, video_path: str) -> str:
 
     # 파일 열기
     with open(video_path, "rb") as file:
-        files = {"file": file}
+        files = {"video_path": file}
 
         # POST 요청 보내기
         response = requests.post(url, data=data, files=files)

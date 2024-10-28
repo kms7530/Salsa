@@ -85,7 +85,7 @@ class VisionLanguage:
             self.gen_kwargs = Config.PREF_VLM["gen_kwargs"]
             self.max_frames_num = Config.PREF_VLM["max_frames_num"]
             self.tokenizer, self.model, self.image_processor, _ = load_pretrained_model(
-                self.model_path, None, "longva", device_map="cuda:0"
+                self.model_path, None, "llava_qwen", device_map="cuda:0"
             )
         # 모델 설정이 Qwen2-VL인 경우.
         elif "Qwen2-VL" in self.model_path:

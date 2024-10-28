@@ -1,6 +1,10 @@
+import os
+import shutil
+
 from typing import Dict, Union
 
 from fastapi import FastAPI
+from fastapi import FastAPI, File, UploadFile
 
 from config import Config
 from pipelines.video_section import get_video_description
@@ -21,8 +25,8 @@ def health_check():
     return "OK"
 
 
-@app.get("/description")
-def health_check(code: Union[str, None]) -> Dict:
+@app.post("/description")
+def health_check(code: Union[str, None], file: UploadFile = File(...)) -> Dict:
     """주어진 영상 코드를 통해 영상을 받아 키워드를 도출하는 API 함수.
 
     Args:
@@ -34,8 +38,12 @@ def health_check(code: Union[str, None]) -> Dict:
     """
 
     # TODO: 기타 pipeline 작성.
+    file_path = os.path.join(Config.PATH_CACHE, code + ".mp4")
+
+    with open(file_path, "wb") as buffer:
+        shutil.copyfileobj(file.file, buffer)
 
     return {
         "status": "OK",
-        "result": get_video_description(code, Config.PATH_CACHE, "", 0, 60),
+        "result": get_video_description(file_path),
     }

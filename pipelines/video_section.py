@@ -4,11 +4,8 @@ from preprocess.video import download_video, slice_video
 
 
 def get_video_description(
-    video_id: str,
-    path_cache: str,
+    file_path: str,
     context_section: str,
-    section_start: int,
-    section_end: int,
 ) -> str:
     """비디오의 색션의 관심 섹션을 가져와 VLM에 추론 후 결과를 반환하는 함수.
 
@@ -28,10 +25,9 @@ def get_video_description(
     prompt = get_video_section_prompt(context_section)
 
     # 영상 다운로드 후 영상 내에서 섹션 추출.
-    download_video(video_id, path_cache)
-    path_sliced_video = slice_video(video_id, path_cache, section_start, section_end)
+    # download_video(video_id, path_cache)
 
     # 추출된 영상에 대해 프롬프트와 함께 추론.
-    result = infer_with_video(prompt, path_sliced_video)
+    result = infer_with_video(prompt, file_path)
 
     return result
